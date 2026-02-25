@@ -45,7 +45,7 @@ export default function Home() {
       aiAgent: { desc: 'A IA analisa o pedido, classifica o grau de urgência e resume os pontos principais para o time de vendas.' },
       step3: [
         { icon: Mail, title: 'E-mail ao Cliente', desc: 'Confirmação de recebimento automática.', color: 'text-indigo-400' },
-        { icon: Trello, title: 'Card no Trello', desc: 'Criação de card com dados do orçamento.', color: 'text-blue-500' },
+        { icon: Trello, title: 'Integração Trello / Kanban / Slack', desc: 'Criação de card com dados do orçamento.', color: 'text-blue-500' },
         { icon: MessageSquare, title: 'Alerta WhatsApp', desc: 'Aviso imediato para sua equipe de vendas.', color: 'text-green-500' }
       ]
     },
