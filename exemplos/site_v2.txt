@@ -1,15 +1,14 @@
-"use client";
 import React, { useState, useEffect } from 'react';
-import {
-  Code2,
-  Workflow,
-  Server,
-  Smartphone,
-  Monitor,
-  Mail,
-  MessageSquare,
-  Briefcase,
-  Scissors,
+import { 
+  Code2, 
+  Workflow, 
+  Server, 
+  Smartphone, 
+  Monitor, 
+  Mail, 
+  MessageSquare, 
+  Briefcase, 
+  Scissors, 
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
@@ -30,7 +29,7 @@ import {
   ArrowDownLeft
 } from 'lucide-react';
 
-export default function Home() {
+export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeN8nTab, setActiveN8nTab] = useState(0);
@@ -111,7 +110,7 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
+  const scrollToSection = (id) => {
     setMobileMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
@@ -121,7 +120,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-blue-500/30">
-
+      
       {/* Navigation */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-slate-950/90 backdrop-blur-md border-b border-slate-800 py-4' : 'bg-transparent py-6'}`}>
         <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
@@ -129,7 +128,7 @@ export default function Home() {
             <Bot className="w-8 h-8 text-blue-500" />
             <span>automatas<span className="text-blue-500">.tech</span></span>
           </div>
-
+          
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-300">
             <button onClick={() => scrollToSection('portfolio')} className="hover:text-blue-400 transition-colors">Portfólio</button>
@@ -160,7 +159,7 @@ export default function Home() {
       {/* Hero Section */}
       <section id="home" className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-
+        
         <div className="container mx-auto px-6 md:px-12 relative z-10 text-center max-w-4xl">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 text-sm font-medium text-blue-400 mb-8 backdrop-blur-sm">
             <Workflow className="w-4 h-4" />
@@ -263,7 +262,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-slate-950 z-0"></div>
         <div className="container mx-auto px-6 md:px-12 relative z-10">
           <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-8 md:p-16 flex flex-col lg:flex-row items-center gap-12 shadow-2xl">
-
+            
             <div className="lg:w-1/2">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-900/30 border border-blue-800/50 text-blue-300 font-semibold mb-6">
                 Produto Exclusivo
@@ -273,7 +272,7 @@ export default function Home() {
               <p className="text-slate-300 text-lg mb-8 leading-relaxed">
                 Uma plataforma 100% online desenvolvida pela automatas.tech. Crie sua conta em minutos e revolucione a gestão do seu salão de beleza, barbearia, esmalteria ou clínica de estética.
               </p>
-
+              
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-6 h-6 text-green-400 shrink-0" />
@@ -288,7 +287,7 @@ export default function Home() {
                   <span className="text-slate-200">Histórico de atendimento e prontuário de clientes.</span>
                 </li>
               </ul>
-
+              
               <button className="px-8 py-4 bg-white text-slate-900 hover:bg-slate-200 rounded-xl font-bold transition-colors">
                 Criar Conta no Tratto
               </button>
@@ -351,17 +350,18 @@ export default function Home() {
 
           {/* Workflow Graphic */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
-
+            
             {/* Tabs */}
             <div className="flex flex-wrap justify-center gap-2 mb-10 relative z-20">
               {n8nUseCases.map((useCase, index) => (
                 <button
                   key={useCase.id}
                   onClick={() => setActiveN8nTab(index)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeN8nTab === index
-                    ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 border border-slate-700'
-                    }`}
+                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                    activeN8nTab === index 
+                      ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]' 
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 border border-slate-700'
+                  }`}
                 >
                   {useCase.tabTitle}
                 </button>
@@ -375,9 +375,9 @@ export default function Home() {
               <p className="text-slate-400 text-center mb-10 max-w-2xl mx-auto">
                 {n8nUseCases[activeN8nTab].description}
               </p>
-
+              
               <div className="flex flex-col lg:flex-row items-start justify-center lg:justify-between gap-8 lg:gap-0 relative z-10 pt-4 lg:pt-8">
-
+                
                 {/* Step 1 */}
                 <div className="flex flex-col items-center text-center w-full lg:w-[200px] xl:w-[220px] shrink-0 lg:mt-[84px]">
                   <div className="w-20 h-20 rounded-2xl bg-slate-800 border border-slate-600 flex items-center justify-center mb-4 shadow-lg z-10 transition-transform hover:scale-105">
@@ -400,31 +400,31 @@ export default function Home() {
 
                 {/* Step 2 + AI Agent */}
                 <div className="flex flex-col items-center text-center w-full lg:w-[220px] xl:w-[240px] shrink-0 relative lg:mt-[76px]">
-
+                  
                   <div className="relative flex justify-center w-full">
-
+                    
                     {/* n8n core */}
                     <div className="w-24 h-24 rounded-full bg-orange-500/10 border-2 border-orange-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.2)] relative z-10">
                       <Workflow className="w-12 h-12 text-orange-500" />
                       <div className="absolute -bottom-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">n8n core</div>
                     </div>
-
+                    
                     {/* AI Agent Optional Block (Desktop) */}
                     {n8nUseCases[activeN8nTab].aiAgent && (
                       <div className="hidden lg:flex flex-col items-center absolute bottom-[75%] left-[75%] xl:left-[85%] w-[180px] xl:w-[200px] z-20 animate-[fadeIn_0.5s_ease-out_0.3s_both]">
-
+                        
                         {/* Desktop Diagonal Arrows */}
                         <div className="absolute left-[-28px] xl:left-[-32px] bottom-[16px] xl:bottom-[20px] flex flex-col">
                           <ArrowUpRight strokeWidth={2.5} className="w-5 h-5 xl:w-6 xl:h-6 text-purple-400 animate-[pulse_1.5s_infinite] mb-[-4px]" />
-                          <ArrowDownLeft strokeWidth={2.5} className="w-5 h-5 xl:w-6 xl:h-6 text-purple-400 animate-[pulse_1.5s_infinite]" style={{ animationDelay: '0.75s' }} />
+                          <ArrowDownLeft strokeWidth={2.5} className="w-5 h-5 xl:w-6 xl:h-6 text-purple-400 animate-[pulse_1.5s_infinite]" style={{animationDelay: '0.75s'}} />
                         </div>
-
+                        
                         {/* AI Icon */}
                         <div className="w-14 h-14 xl:w-16 xl:h-16 rounded-2xl bg-purple-900/40 border border-purple-500/50 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(168,85,247,0.3)] relative group cursor-default">
                           <BrainCircuit className="w-7 h-7 xl:w-8 xl:h-8 text-purple-400 group-hover:scale-110 transition-transform" />
                           <div className="absolute -bottom-2 bg-purple-600 text-white text-[9px] xl:text-[10px] font-bold px-2 xl:px-3 py-0.5 rounded-full whitespace-nowrap shadow-md">Agente IA</div>
                         </div>
-
+                        
                         {/* AI Text */}
                         <p className="text-[10px] xl:text-[11px] text-purple-200 bg-slate-900/95 backdrop-blur-sm p-2.5 xl:p-3 rounded-xl border border-purple-500/30 text-center leading-relaxed shadow-xl w-full">
                           {n8nUseCases[activeN8nTab].aiAgent.desc}
@@ -441,7 +441,7 @@ export default function Home() {
                     <div className="flex lg:hidden flex-col items-center mt-6 w-full">
                       <div className="flex gap-4 mb-4">
                         <ArrowDown className="w-5 h-5 text-purple-400 animate-bounce" />
-                        <ArrowUp className="w-5 h-5 text-purple-400 animate-bounce" style={{ animationDelay: '0.5s' }} />
+                        <ArrowUp className="w-5 h-5 text-purple-400 animate-bounce" style={{animationDelay: '0.5s'}} />
                       </div>
                       {/* AI Bubble */}
                       <div className="w-16 h-16 rounded-2xl bg-purple-900/40 border border-purple-500/50 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(168,85,247,0.3)] relative">
@@ -527,7 +527,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
+            
             <div className="md:w-1/2">
               <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                 <div>
@@ -569,6 +569,18 @@ export default function Home() {
         </div>
       </footer>
 
+      {/* Keyframes for the animation in the automation flow */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes slideRight {
+          0% { transform: translateX(-100%); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translateX(200%); opacity: 0; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}} />
     </div>
   );
 }
