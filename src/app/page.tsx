@@ -396,60 +396,69 @@ export default function Home() {
                     <div className="absolute top-0 left-0 h-full bg-blue-500 w-1/2 animate-[slideRight_2s_infinite]"></div>
                   </div>
                 </div>
-                <div className="lg:hidden w-1 h-12 bg-slate-700 relative my-2"></div>
+                <div className="lg:hidden flex justify-center w-full my-6">
+                  <div className="w-1 h-12 bg-slate-700 relative overflow-hidden rounded-full">
+                    <div className="absolute top-0 left-0 w-full bg-blue-500 h-1/2 animate-[slideDown_2s_infinite]"></div>
+                  </div>
+                </div>
 
                 {/* Step 2 + AI Agent */}
                 <div className="flex flex-col items-center text-center w-full lg:w-[220px] xl:w-[240px] shrink-0 relative lg:mt-[76px]">
 
-                  <div className="relative flex justify-center w-full">
+                  <div className="relative flex justify-center items-center gap-4 lg:gap-0 w-full">
 
                     {/* n8n core */}
-                    <div className="w-24 h-24 rounded-full bg-orange-500/10 border-2 border-orange-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.2)] relative z-10">
-                      <Workflow className="w-12 h-12 text-orange-500" />
+                    <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-orange-500/10 border-2 border-orange-500/50 flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.2)] relative z-10 shrink-0">
+                      <Workflow className="w-10 h-10 lg:w-12 lg:h-12 text-orange-500" />
                       <div className="absolute -bottom-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">n8n core</div>
                     </div>
 
-                    {/* AI Agent Optional Block (Desktop) */}
+                    {/* AI Agent Optional Block */}
                     {n8nUseCases[activeN8nTab].aiAgent && (
-                      <div className="hidden lg:flex flex-col items-center absolute bottom-[75%] left-[75%] xl:left-[85%] w-[180px] xl:w-[200px] z-20 animate-[fadeIn_0.5s_ease-out_0.3s_both]">
-
-                        {/* Desktop Diagonal Arrows */}
-                        <div className="absolute left-[-28px] xl:left-[-32px] bottom-[16px] xl:bottom-[20px] flex flex-col">
-                          <ArrowUpRight strokeWidth={2.5} className="w-5 h-5 xl:w-6 xl:h-6 text-purple-400 animate-[pulse_1.5s_infinite] mb-[-4px]" />
-                          <ArrowDownLeft strokeWidth={2.5} className="w-5 h-5 xl:w-6 xl:h-6 text-purple-400 animate-[pulse_1.5s_infinite]" style={{ animationDelay: '0.75s' }} />
+                      <>
+                        {/* Mobile Horizontal Arrows */}
+                        <div className="flex lg:hidden flex-col justify-center gap-2">
+                          <ArrowRight className="w-4 h-4 text-purple-400 animate-pulse" />
+                          <ArrowLeft className="w-4 h-4 text-purple-400 animate-pulse" style={{ animationDelay: '0.5s' }} />
                         </div>
 
-                        {/* AI Icon */}
-                        <div className="w-14 h-14 xl:w-16 xl:h-16 rounded-2xl bg-purple-900/40 border border-purple-500/50 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(168,85,247,0.3)] relative group cursor-default">
-                          <BrainCircuit className="w-7 h-7 xl:w-8 xl:h-8 text-purple-400 group-hover:scale-110 transition-transform" />
-                          <div className="absolute -bottom-2 bg-purple-600 text-white text-[9px] xl:text-[10px] font-bold px-2 xl:px-3 py-0.5 rounded-full whitespace-nowrap shadow-md">Agente IA</div>
+                        {/* Mobile AI Icon */}
+                        <div className="lg:hidden w-20 h-20 rounded-2xl bg-purple-900/40 border border-purple-500/50 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.3)] relative shrink-0">
+                          <BrainCircuit className="w-8 h-8 text-purple-400" />
+                          <div className="absolute -bottom-2 bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shadow-md">Agente IA</div>
                         </div>
 
-                        {/* AI Text */}
-                        <p className="text-[10px] xl:text-[11px] text-purple-200 bg-slate-900/95 backdrop-blur-sm p-2.5 xl:p-3 rounded-xl border border-purple-500/30 text-center leading-relaxed shadow-xl w-full">
-                          {n8nUseCases[activeN8nTab].aiAgent.desc}
-                        </p>
-                      </div>
+                        {/* Desktop AI Block */}
+                        <div className="hidden lg:flex flex-col items-center absolute bottom-[75%] left-[75%] xl:left-[85%] w-[180px] xl:w-[200px] z-20 animate-[fadeIn_0.5s_ease-out_0.3s_both]">
+                          {/* Desktop Diagonal Arrows */}
+                          <div className="absolute left-[-28px] xl:left-[-32px] bottom-[16px] xl:bottom-[20px] flex flex-col">
+                            <ArrowUpRight strokeWidth={2.5} className="w-5 h-5 xl:w-6 xl:h-6 text-purple-400 animate-[pulse_1.5s_infinite] mb-[-4px]" />
+                            <ArrowDownLeft strokeWidth={2.5} className="w-5 h-5 xl:w-6 xl:h-6 text-purple-400 animate-[pulse_1.5s_infinite]" style={{ animationDelay: '0.75s' }} />
+                          </div>
+
+                          {/* AI Icon */}
+                          <div className="w-14 h-14 xl:w-16 xl:h-16 rounded-2xl bg-purple-900/40 border border-purple-500/50 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(168,85,247,0.3)] relative group cursor-default">
+                            <BrainCircuit className="w-7 h-7 xl:w-8 xl:h-8 text-purple-400 group-hover:scale-110 transition-transform" />
+                            <div className="absolute -bottom-2 bg-purple-600 text-white text-[9px] xl:text-[10px] font-bold px-2 xl:px-3 py-0.5 rounded-full whitespace-nowrap shadow-md">Agente IA</div>
+                          </div>
+
+                          {/* AI Text */}
+                          <p className="text-[10px] xl:text-[11px] text-purple-200 bg-slate-900/95 backdrop-blur-sm p-2.5 xl:p-3 rounded-xl border border-purple-500/30 text-center leading-relaxed shadow-xl w-full">
+                            {n8nUseCases[activeN8nTab].aiAgent.desc}
+                          </p>
+                        </div>
+                      </>
                     )}
                   </div>
 
                   <h4 className="font-bold text-lg mb-2 mt-6">2. Automação</h4>
                   <p className="text-sm text-slate-400 max-w-[200px] xl:max-w-[220px]">O servidor n8n recebe os dados instantaneamente e inicia o fluxo.</p>
 
-                  {/* AI Mobile Block */}
+                  {/* AI Text for Mobile */}
                   {n8nUseCases[activeN8nTab].aiAgent && (
-                    <div className="flex lg:hidden flex-col items-center mt-6 w-full">
-                      <div className="flex gap-4 mb-4">
-                        <ArrowDown className="w-5 h-5 text-purple-400 animate-bounce" />
-                        <ArrowUp className="w-5 h-5 text-purple-400 animate-bounce" style={{ animationDelay: '0.5s' }} />
-                      </div>
-                      {/* AI Bubble */}
-                      <div className="w-16 h-16 rounded-2xl bg-purple-900/40 border border-purple-500/50 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(168,85,247,0.3)] relative">
-                        <BrainCircuit className="w-8 h-8 text-purple-400" />
-                        <div className="absolute -bottom-2 bg-purple-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-full whitespace-nowrap shadow-md">Agente IA</div>
-                      </div>
-                      <p className="text-xs text-purple-200 bg-slate-900/95 backdrop-blur-sm p-3 rounded-xl border border-purple-500/30 text-center leading-relaxed shadow-xl max-w-[240px]">
-                        {n8nUseCases[activeN8nTab].aiAgent.desc}
+                    <div className="flex lg:hidden mt-6 w-full justify-center">
+                      <p className="text-xs text-purple-200 bg-slate-900/95 backdrop-blur-sm p-3 rounded-xl border border-purple-500/30 text-center leading-relaxed shadow-xl max-w-[280px]">
+                        <strong>Agente IA:</strong> {n8nUseCases[activeN8nTab].aiAgent.desc}
                       </p>
                     </div>
                   )}
@@ -461,7 +470,11 @@ export default function Home() {
                     <div className="absolute top-0 left-0 h-full bg-blue-500 w-1/2 animate-[slideRight_2s_infinite_0.5s]"></div>
                   </div>
                 </div>
-                <div className="lg:hidden w-1 h-12 bg-slate-700 relative my-2"></div>
+                <div className="lg:hidden flex justify-center w-full my-6">
+                  <div className="w-1 h-12 bg-slate-700 relative overflow-hidden rounded-full">
+                    <div className="absolute top-0 left-0 w-full bg-blue-500 h-1/2 animate-[slideDown_2s_infinite_0.5s]"></div>
+                  </div>
+                </div>
 
                 {/* Step 3 (Split) */}
                 <div className="flex flex-col gap-4 w-full lg:w-[260px] xl:w-[280px] shrink-0">
