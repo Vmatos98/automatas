@@ -43,6 +43,21 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeN8nTab, setActiveN8nTab] = useState(0);
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
+  const [telefone, setTelefone] = useState('');
+
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.substring(0, 11);
+    
+    let formatted = '';
+    if (v.length === 0) formatted = '';
+    else if (v.length <= 2) formatted = `(${v}`;
+    else if (v.length <= 3) formatted = `(${v.substring(0, 2)}) ${v.substring(2)}`;
+    else if (v.length <= 7) formatted = `(${v.substring(0, 2)}) ${v.substring(2, 3)} ${v.substring(3)}`;
+    else formatted = `(${v.substring(0, 2)}) ${v.substring(2, 3)} ${v.substring(3, 7)}-${v.substring(7)}`;
+
+    setTelefone(formatted);
+  };
 
   const n8nUseCases = [
     {
@@ -717,12 +732,23 @@ export default function Home() {
             <div className="md:w-1/2">
               <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Nome Completo</label>
-                  <input type="text" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="João Silva" />
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Nome Completo *</label>
+                  <input required type="text" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="João Silva" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">E-mail</label>
-                  <input type="email" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="joao@empresa.com" />
+                  <label className="block text-sm font-medium text-slate-400 mb-1">E-mail *</label>
+                  <input required type="email" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="joao@empresa.com" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Número para contato *</label>
+                  <input required type="text" value={telefone} onChange={handleTelefoneChange} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="(11) 9 9999-9999" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Preferência de contato</label>
+                  <select className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none">
+                    <option>E-mail</option>
+                    <option>WhatsApp</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Do que você precisa?</label>
@@ -733,7 +759,12 @@ export default function Home() {
                     <option>Consultoria em Tecnologia</option>
                   </select>
                 </div>
-                <button type="button" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg transition-colors mt-2">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Motivo do contato (Opcional)</label>
+                  <textarea rows={3} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="Conte-nos um pouco sobre o que precisa..."></textarea>
+                  <p className="text-xs text-slate-500 mt-2">Isso é importante para identificarmos as tecnologias que já usa, o que precisa ser feito e o grau de urgência.</p>
+                </div>
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg transition-colors mt-2">
                   Solicitar Contato
                 </button>
               </form>
