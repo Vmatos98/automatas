@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loja Demo | E-commerce Profissional</title>
+    <!-- Tailwind CSS para estilização rápida e moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons para os ícones -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Configuração de cores personalizadas do Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5', // Indigo 600
+                        primaryHover: '#4338ca', // Indigo 700
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Animações suaves */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilo para a notificação (Toast) */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background-color: #10b981;
+            /* Verde sucesso */
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans flex flex-col min-h-screen">
+
+    <!-- Navegação (Header) -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer">
+                    <i data-lucide="shopping-bag" class="h-8 w-8 text-primary mr-2"></i>
+                    <span class="font-bold text-xl tracking-tight text-gray-900">Loja<span
+                            class="text-primary">Demo</span></span>
+                </div>
+
+                <!-- Menu Desktop -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#"
+                        class="text-gray-600 hover:text-primary px-3 py-2 font-medium transition-colors">Início</a>
+                    <a href="#produtos"
+                        class="text-gray-600 hover:text-primary px-3 py-2 font-medium transition-colors">Produtos</a>
+                    <a href="#sobre"
+                        class="text-gray-600 hover:text-primary px-3 py-2 font-medium transition-colors">Sobre Nós</a>
+                    <a href="#contato"
+                        class="text-gray-600 hover:text-primary px-3 py-2 font-medium transition-colors">Contato</a>
+                </nav>
+
+                <!-- Ícones Direita (Busca, Conta, Carrinho) -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-primary transition-colors hidden sm:block">
+                        <i data-lucide="search" class="h-6 w-6"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-primary transition-colors hidden sm:block">
+                        <i data-lucide="user" class="h-6 w-6"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-primary transition-colors relative"
+                        onclick="abrirCarrinho()">
+                        <i data-lucide="shopping-cart" class="h-6 w-6"></i>
+                        <!-- Badge do Carrinho -->
+                        <span id="cart-count"
+                            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center scale-0 transition-transform duration-300">0</span>
+                    </button>
+
+                    <!-- Botão Menu Mobile -->
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-primary focus:outline-none">
+                        <i data-lucide="menu" class="h-6 w-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Mobile (Oculto por padrão) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#"
+                    class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md">Início</a>
+                <a href="#produtos"
+                    class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md">Produtos</a>
+                <a href="#sobre"
+                    class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md">Sobre
+                    Nós</a>
+                <a href="#contato"
+                    class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md">Contato</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner Principal (Hero Section) -->
+    <section class="relative bg-gray-900">
+        <div class="absolute inset-0 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+                alt="Loja de Roupas" class="w-full h-full object-cover opacity-40">
+        </div>
+        <div
+            class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-center text-center">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-4">
+                Nova Coleção de Inverno
+            </h1>
+            <p class="mt-4 text-xl text-gray-300 max-w-2xl mb-8">
+                Descubra as últimas tendências com qualidade premium e design exclusivo. Renove seu estilo com ofertas
+                imperdíveis.
+            </p>
+            <a href="#produtos"
+                class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primaryHover transition-colors duration-300 shadow-lg hover:shadow-xl">
+                Comprar Agora
+                <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Vantagens / Trust Badges -->
+    <section class="bg-white py-8 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="flex flex-col items-center">
+                    <div class="bg-indigo-100 p-3 rounded-full text-primary mb-3">
+                        <i data-lucide="truck" class="h-6 w-6"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900">Frete Grátis</h3>
+                    <p class="text-sm text-gray-500">Nas compras acima de R$ 199</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-indigo-100 p-3 rounded-full text-primary mb-3">
+                        <i data-lucide="shield-check" class="h-6 w-6"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900">Compra Segura</h3>
+                    <p class="text-sm text-gray-500">Dados 100% protegidos</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="bg-indigo-100 p-3 rounded-full text-primary mb-3">
+                        <i data-lucide="refresh-cw" class="h-6 w-6"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900">Troca Fácil</h3>
+                    <p class="text-sm text-gray-500">Até 30 dias para devolução</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Produtos -->
+    <main id="produtos" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Nossos Produtos</h2>
+                <p class="mt-2 text-gray-500">Encontre o que combina perfeitamente com você.</p>
+            </div>
+
+            <!-- Filtros de Categoria -->
+            <div class="flex overflow-x-auto space-x-2 pb-2 w-full md:w-auto hide-scroll">
+                <button onclick="filtrarProdutos('todos')"
+                    class="filter-btn active px-4 py-2 rounded-full border border-gray-300 bg-gray-900 text-white text-sm font-medium whitespace-nowrap transition-colors"
+                    data-category="todos">Todos</button>
+                <button onclick="filtrarProdutos('roupas')"
+                    class="filter-btn px-4 py-2 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium whitespace-nowrap transition-colors"
+                    data-category="roupas">Roupas</button>
+                <button onclick="filtrarProdutos('calcados')"
+                    class="filter-btn px-4 py-2 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium whitespace-nowrap transition-colors"
+                    data-category="calcados">Calçados</button>
+                <button onclick="filtrarProdutos('acessorios')"
+                    class="filter-btn px-4 py-2 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium whitespace-nowrap transition-colors"
+                    data-category="acessorios">Acessórios</button>
+            </div>
+        </div>
+
+        <!-- Grid de Produtos (Gerado via JS) -->
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Os produtos serão injetados aqui -->
+        </div>
+    </main>
+
+    <!-- Call to Action Final -->
+    <section class="bg-indigo-50 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Inscreva-se na nossa Newsletter</h2>
+            <p class="text-gray-600 mb-8 max-w-2xl mx-auto">Receba ofertas exclusivas, novidades em primeira mão e ganhe
+                10% de desconto na sua primeira compra.</p>
+            <form class="max-w-md mx-auto flex flex-col sm:flex-row gap-2"
+                onsubmit="event.preventDefault(); mostrarNotificacao('E-mail cadastrado com sucesso!');">
+                <input type="email" placeholder="Seu melhor e-mail" required
+                    class="flex-grow px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                <button type="submit"
+                    class="px-6 py-3 bg-gray-900 text-white font-medium rounded-md hover:bg-gray-800 transition-colors">
+                    Cadastrar
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i data-lucide="shopping-bag" class="h-6 w-6 text-primary mr-2"></i>
+                        <span class="font-bold text-xl">Loja<span class="text-primary">Demo</span></span>
+                    </div>
+                    <p class="text-gray-400 text-sm">Oferecendo a melhor experiência de compra online com produtos de
+                        alta qualidade e atendimento excepcional.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4 text-lg">Links Úteis</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Rastrear Pedido</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Política de Devolução</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Perguntas Frequentes</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Termos de Serviço</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4 text-lg">Categorias</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Novidades</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Roupas Masculinas</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Roupas Femininas</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Acessórios</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4 text-lg">Contato</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li class="flex items-center"><i data-lucide="mail" class="h-4 w-4 mr-2"></i>
+                            contato@lojademo.com.br</li>
+                        <li class="flex items-center"><i data-lucide="phone" class="h-4 w-4 mr-2"></i> (11) 99999-9999
+                        </li>
+                        <li class="flex items-center"><i data-lucide="map-pin" class="h-4 w-4 mr-2"></i> São Paulo, SP
+                        </li>
+                    </ul>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i data-lucide="instagram"
+                                class="h-5 w-5"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i data-lucide="facebook"
+                                class="h-5 w-5"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i data-lucide="twitter"
+                                class="h-5 w-5"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
+                <p>&copy; 2026 LojaDemo. Todos os direitos reservados.</p>
+                <p class="mt-2 md:mt-0 flex items-center">
+                    Desenvolvido com <i data-lucide="heart" class="h-4 w-4 text-red-500 mx-1"></i> por [Seu
+                    Nome/Agência]
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Container de Notificações (Toasts) -->
+    <div id="toast-container"></div>
+
+    <script>
+        // Inicializa os ícones do Lucide
+        lucide.createIcons();
+
+        // Variáveis de estado
+        let cartItemCount = 0;
+
+        // Banco de Dados Mockado de Produtos
+        const produtos = [
+            { id: 1, nome: "Camiseta Básica Premium", preco: 79.90, categoria: "roupas", imagem: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+            { id: 2, nome: "Tênis Esportivo Runner", preco: 299.90, categoria: "calcados", imagem: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+            { id: 3, nome: "Relógio Minimalista Prata", preco: 199.90, categoria: "acessorios", imagem: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+            { id: 4, nome: "Jaqueta de Couro Clássica", preco: 349.90, categoria: "roupas", imagem: "https://images.unsplash.com/photo-1551028719-00167b16eac5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+            { id: 5, nome: "Óculos de Sol Vintage", preco: 129.90, categoria: "acessorios", imagem: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+            { id: 6, nome: "Mochila Urbana Resistente", preco: 159.90, categoria: "acessorios", imagem: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+            { id: 7, nome: "Calça Jeans Slim Fit", preco: 189.90, categoria: "roupas", imagem: "https://images.unsplash.com/photo-1542272604-787c3835535d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+            { id: 8, nome: "Tênis Casual Branco", preco: 249.90, categoria: "calcados", imagem: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
+        ];
+
+        // Função para renderizar produtos na tela
+        function renderizarProdutos(produtosParaMostrar) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = ''; // Limpa a grid
+
+            if (produtosParaMostrar.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">Nenhum produto encontrado nesta categoria.</p>';
+                return;
+            }
+
+            produtosParaMostrar.forEach(produto => {
+                // Formatação do preço em Reais
+                const precoFormatado = produto.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                // Criação do HTML do card
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col fade-in';
+
+                card.innerHTML = `
+                    <div class="relative group cursor-pointer overflow-hidden pb-[100%]">
+                        <img src="${produto.imagem}" alt="${produto.nome}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <!-- Badge opcional de 'Novo' ou 'Promoção' pode entrar aqui -->
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <span class="text-xs text-primary font-semibold uppercase tracking-wider mb-1">${produto.categoria}</span>
+                        <h3 class="font-bold text-gray-900 mb-2 leading-tight">${produto.nome}</h3>
+                        <div class="mt-auto flex items-center justify-between">
+                            <span class="font-extrabold text-lg text-gray-900">${precoFormatado}</span>
+                            <button onclick="adicionarAoCarrinho(${produto.id})" class="bg-gray-100 hover:bg-primary hover:text-white text-gray-900 p-2 rounded-full transition-colors duration-300" title="Adicionar ao carrinho">
+                                <i data-lucide="plus" class="h-5 w-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Re-renderiza ícones inseridos dinamicamente
+            lucide.createIcons();
+        }
+
+        // Função para filtrar produtos
+        function filtrarProdutos(categoria) {
+            // Atualiza visual dos botões
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.category === categoria) {
+                    btn.classList.replace('bg-white', 'bg-gray-900');
+                    btn.classList.replace('text-gray-700', 'text-white');
+                    btn.classList.remove('hover:bg-gray-50');
+                } else {
+                    btn.classList.replace('bg-gray-900', 'bg-white');
+                    btn.classList.replace('text-white', 'text-gray-700');
+                    btn.classList.add('hover:bg-gray-50');
+                }
+            });
+
+            // Filtra o array
+            const filtrados = categoria === 'todos'
+                ? produtos
+                : produtos.filter(p => p.categoria === categoria);
+
+            renderizarProdutos(filtrados);
+        }
+
+        // Função de Adicionar ao Carrinho
+        function adicionarAoCarrinho(idProduto) {
+            const produto = produtos.find(p => p.id === idProduto);
+            cartItemCount++;
+
+            // Atualiza o contador visual
+            const badge = document.getElementById('cart-count');
+            badge.innerText = cartItemCount;
+            badge.classList.remove('scale-0');
+            badge.classList.add('scale-100');
+
+            // Efeito de pulso no badge
+            badge.classList.add('animate-ping', 'duration-75');
+            setTimeout(() => {
+                badge.classList.remove('animate-ping', 'duration-75');
+            }, 300);
+
+            // Mostra notificação
+            mostrarNotificacao(`<strong>${produto.nome}</strong> adicionado ao carrinho!`);
+        }
+
+        // Função para mostrar notificação (Toast) sem usar alert()
+        function mostrarNotificacao(mensagem) {
+            const container = document.getElementById('toast-container');
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <i data-lucide="check-circle" class="h-5 w-5"></i>
+                <span>${mensagem}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Anima a entrada
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Remove após 3 segundos
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300); // Tempo da transição de saída
+            }, 3000);
+        }
+
+        // Simulação de abrir carrinho
+        function abrirCarrinho() {
+            if (cartItemCount === 0) {
+                mostrarNotificacao("Seu carrinho está vazio.");
+            } else {
+                mostrarNotificacao(`Você tem ${cartItemCount} itens no carrinho. Em um projeto real, isso abriria um painel lateral.`);
+            }
+        }
+
+        // Toggle do Menu Mobile
+        const btnMenu = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btnMenu.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // Inicialização na carga da página
+        window.onload = () => {
+            renderizarProdutos(produtos); // Mostra todos os produtos no início
+        };
+    </script>
+</body>
+
+</html>

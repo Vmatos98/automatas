@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica Vida & Saúde | Excelência Médica</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Configuração de Cores Customizadas no Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        secondary: '#0d9488', // Teal
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Estilos adicionais personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-hero {
+            background-image: linear-gradient(rgba(12, 74, 110, 0.7), rgba(12, 74, 110, 0.7)), url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .service-card:hover .service-icon {
+            transform: scale(1.1);
+            color: #0ea5e9;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- Navegação -->
+    <nav class="bg-white shadow-md fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <i class="fa-solid fa-notes-medical text-primary-600 text-3xl"></i>
+                    <span class="font-bold text-2xl text-primary-900 tracking-tight">Vida & Saúde</span>
+                </div>
+
+                <!-- Menu Desktop -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#inicio"
+                        class="text-gray-600 hover:text-primary-600 font-medium transition-colors">Início</a>
+                    <a href="#sobre" class="text-gray-600 hover:text-primary-600 font-medium transition-colors">Sobre
+                        Nós</a>
+                    <a href="#especialidades"
+                        class="text-gray-600 hover:text-primary-600 font-medium transition-colors">Especialidades</a>
+                    <a href="#contato"
+                        class="text-gray-600 hover:text-primary-600 font-medium transition-colors">Contato</a>
+                    <a href="#agendamento"
+                        class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-full font-medium transition-colors shadow-lg shadow-primary-500/30">
+                        Agendar Consulta
+                    </a>
+                </div>
+
+                <!-- Botão Mobile -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-primary-600 focus:outline-none p-2">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Mobile Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
+            <div class="px-4 pt-2 pb-6 space-y-2 flex flex-col">
+                <a href="#inicio"
+                    class="block px-3 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-md font-medium border-b border-gray-50">Início</a>
+                <a href="#sobre"
+                    class="block px-3 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-md font-medium border-b border-gray-50">Sobre
+                    Nós</a>
+                <a href="#especialidades"
+                    class="block px-3 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-md font-medium border-b border-gray-50">Especialidades</a>
+                <a href="#contato"
+                    class="block px-3 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-md font-medium mb-4">Contato</a>
+                <a href="#agendamento"
+                    class="text-center bg-primary-600 text-white px-4 py-3 rounded-md font-medium">Agendar Consulta</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="relative pt-20 bg-hero h-[600px] flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="max-w-2xl">
+                <span class="text-primary-100 font-semibold tracking-wider uppercase text-sm mb-4 block">Cuidado
+                    Excepcional</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+                    Sua saúde e bem-estar em primeiro lugar.
+                </h1>
+                <p class="text-lg text-gray-200 mb-8 leading-relaxed">
+                    Oferecemos atendimento médico humanizado, tecnologia de ponta e uma equipe de especialistas
+                    dedicados a cuidar da sua família.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#agendamento"
+                        class="bg-primary-600 hover:bg-primary-500 text-white text-center px-8 py-4 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                        Agende sua Consulta
+                    </a>
+                    <a href="#sobre"
+                        class="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 text-center px-8 py-4 rounded-lg font-semibold transition-all">
+                        Conheça a Clínica
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Info Cards (Sobrepondo o Hero levemente) -->
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 z-20">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+                class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-primary-500 flex flex-col items-center text-center">
+                <div class="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-user-doctor text-primary-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Corpo Clínico</h3>
+                <p class="text-gray-600 text-sm">Profissionais altamente qualificados e referências em suas áreas de
+                    atuação.</p>
+            </div>
+
+            <div
+                class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-secondary flex flex-col items-center text-center">
+                <div class="w-14 h-14 bg-teal-50 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-regular fa-clock text-secondary text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Horário Estendido</h3>
+                <p class="text-gray-600 text-sm">Atendimento de segunda a sábado com horários flexíveis para sua
+                    comodidade.</p>
+            </div>
+
+            <div
+                class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-primary-500 flex flex-col items-center text-center">
+                <div class="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-microscope text-primary-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Tecnologia de Ponta</h3>
+                <p class="text-gray-600 text-sm">Equipamentos modernos para diagnósticos precisos e tratamentos
+                    eficazes.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sobre Nós -->
+    <section id="sobre" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-16 items-center">
+                <!-- Imagem -->
+                <div class="lg:w-1/2 relative">
+                    <img src="https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                        alt="Médico atendendo paciente" class="rounded-2xl shadow-2xl z-10 relative">
+                    <!-- Elemento decorativo -->
+                    <div class="absolute -bottom-6 -right-6 w-full h-full border-4 border-primary-100 rounded-2xl z-0">
+                    </div>
+                </div>
+
+                <!-- Texto -->
+                <div class="lg:w-1/2">
+                    <h2 class="text-primary-600 font-semibold tracking-wide uppercase text-sm mb-2">Sobre a Clínica</h2>
+                    <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Tradição e inovação no cuidado com a
+                        vida</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Fundada há mais de 15 anos, a Clínica Vida & Saúde nasceu com o propósito de oferecer medicina
+                        de excelência com um olhar humano. Acreditamos que cada paciente é único e merece um atendimento
+                        personalizado, acolhedor e resolutivo.
+                    </p>
+                    <p class="text-gray-600 mb-8 leading-relaxed">
+                        Nossas instalações foram projetadas para proporcionar conforto e segurança, integrando diversas
+                        especialidades em um só lugar para facilitar a sua jornada de saúde.
+                    </p>
+
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-circle-check text-secondary mt-1 mr-3"></i>
+                            <span class="text-gray-700 font-medium">Atendimento humanizado e personalizado</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-circle-check text-secondary mt-1 mr-3"></i>
+                            <span class="text-gray-700 font-medium">Equipe multidisciplinar integrada</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-circle-check text-secondary mt-1 mr-3"></i>
+                            <span class="text-gray-700 font-medium">Ambiente seguro e rigorosos protocolos de
+                                higiene</span>
+                        </li>
+                    </ul>
+
+                    <a href="#especialidades"
+                        class="text-primary-600 font-semibold hover:text-primary-700 flex items-center gap-2 transition-colors">
+                        Conhecer especialidades <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Especialidades -->
+    <section id="especialidades" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-primary-600 font-semibold tracking-wide uppercase text-sm mb-2">Nossos Serviços</h2>
+                <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Especialidades Médicas</h3>
+                <p class="text-gray-600 text-lg">Oferecemos uma ampla gama de especialidades para cuidar de você de
+                    forma integral.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-heart-pulse text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Cardiologia</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Prevenção, diagnóstico e tratamento de doenças do
+                        coração e sistema circulatório.</p>
+                </div>
+
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-baby text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Pediatria</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Cuidado integral com a saúde, crescimento e
+                        desenvolvimento de bebês e crianças.</p>
+                </div>
+
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-brain text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Neurologia</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Diagnóstico e tratamento de distúrbios do sistema
+                        nervoso central e periférico.</p>
+                </div>
+
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-bone text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Ortopedia</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Tratamento de lesões e doenças relacionadas aos
+                        ossos, músculos e articulações.</p>
+                </div>
+
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-eye text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Oftalmologia</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Prevenção e tratamento de doenças relacionadas aos
+                        olhos e visão.</p>
+                </div>
+
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-tooth text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Odontologia</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Saúde bucal completa, estética e tratamentos
+                        ortodônticos.</p>
+                </div>
+
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-apple-whole text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Nutrição</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Acompanhamento nutricional para melhora da
+                        qualidade de vida e prevenção.</p>
+                </div>
+
+                <!-- Card Especialidade -->
+                <div
+                    class="service-card bg-gray-50 border border-gray-100 rounded-2xl p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer group">
+                    <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6">
+                        <i
+                            class="fa-solid fa-vial text-3xl text-gray-400 service-icon transition-colors duration-300"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+                        Exames</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">Laboratório próprio para exames de sangue, imagem e
+                        check-ups completos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Agendamento e Contato -->
+    <section id="agendamento" class="py-24 bg-primary-900 relative">
+        <div class="absolute inset-0 opacity-10"
+            style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+
+                <!-- Informações de Contato -->
+                <div class="bg-primary-600 lg:w-2/5 p-10 text-white flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-3xl font-bold mb-2">Fale Conosco</h3>
+                        <p class="text-primary-100 mb-10">Tire suas dúvidas ou agende sua consulta diretamente pelos
+                            nossos canais de atendimento.</p>
+
+                        <div class="space-y-6">
+                            <div class="flex items-start gap-4">
+                                <i class="fa-solid fa-location-dot text-xl mt-1 text-primary-200"></i>
+                                <div>
+                                    <h4 class="font-semibold text-lg">Endereço</h4>
+                                    <p class="text-primary-100">Av. Paulista, 1000 - Bela Vista<br>São Paulo - SP,
+                                        01310-100</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <i class="fa-solid fa-phone text-xl mt-1 text-primary-200"></i>
+                                <div>
+                                    <h4 class="font-semibold text-lg">Telefones</h4>
+                                    <p class="text-primary-100">(11) 3000-0000<br>(11) 99999-0000 (WhatsApp)</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <i class="fa-regular fa-clock text-xl mt-1 text-primary-200"></i>
+                                <div>
+                                    <h4 class="font-semibold text-lg">Horário de Funcionamento</h4>
+                                    <p class="text-primary-100">Seg - Sex: 07:00 às 20:00<br>Sábados: 08:00 às 14:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10">
+                        <div class="flex space-x-4">
+                            <a href="#"
+                                class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                                <i class="fa-brands fa-instagram"></i>
+                            </a>
+                            <a href="#"
+                                class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                                <i class="fa-brands fa-facebook-f"></i>
+                            </a>
+                            <a href="#"
+                                class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                                <i class="fa-brands fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário -->
+                <div class="lg:w-3/5 p-10 bg-white" id="contato">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Agendar Consulta Online</h3>
+
+                    <!-- Box de Mensagem Sucesso (Oculto por padrão) -->
+                    <div id="success-message"
+                        class="hidden mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg relative flex items-center gap-3">
+                        <i class="fa-solid fa-circle-check text-xl"></i>
+                        <div>
+                            <strong class="font-bold">Solicitação enviada!</strong>
+                            <span class="block sm:inline">Nossa equipe entrará em contato em breve para confirmar seu
+                                horário.</span>
+                        </div>
+                    </div>
+
+                    <form id="booking-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="nome" class="block text-sm font-medium text-gray-700 mb-2">Nome
+                                    Completo</label>
+                                <input type="text" id="nome" required
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+                                    placeholder="João da Silva">
+                            </div>
+                            <div>
+                                <label for="telefone" class="block text-sm font-medium text-gray-700 mb-2">Telefone /
+                                    WhatsApp</label>
+                                <input type="tel" id="telefone" required
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+                                    placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="especialidade"
+                                    class="block text-sm font-medium text-gray-700 mb-2">Especialidade Desejada</label>
+                                <select id="especialidade" required
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors bg-white">
+                                    <option value="">Selecione...</option>
+                                    <option value="cardiologia">Cardiologia</option>
+                                    <option value="pediatria">Pediatria</option>
+                                    <option value="ortopedia">Ortopedia</option>
+                                    <option value="clinico">Clínico Geral</option>
+                                    <option value="exames">Exames Laboratoriais</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="data" class="block text-sm font-medium text-gray-700 mb-2">Data
+                                    Preferencial</label>
+                                <input type="date" id="data" required
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors text-gray-700">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="mensagem" class="block text-sm font-medium text-gray-700 mb-2">Mensagem
+                                Adicional (Opcional)</label>
+                            <textarea id="mensagem" rows="3"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors resize-none"
+                                placeholder="Descreva brevemente o motivo da consulta ou alguma observação..."></textarea>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-lg transition-colors shadow-lg shadow-primary-500/30">
+                            Enviar Solicitação de Agendamento
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Marca -->
+                <div class="col-span-1 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-notes-medical text-primary-500 text-2xl"></i>
+                        <span class="font-bold text-xl text-white tracking-tight">Vida & Saúde</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Excelência em medicina e cuidado humanizado para você e sua
+                        família.</p>
+                </div>
+
+                <!-- Links Úteis -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Links Rápidos</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#inicio" class="hover:text-primary-400 transition-colors">Início</a></li>
+                        <li><a href="#sobre" class="hover:text-primary-400 transition-colors">Sobre a Clínica</a></li>
+                        <li><a href="#especialidades" class="hover:text-primary-400 transition-colors">Corpo Clínico</a>
+                        </li>
+                        <li><a href="#agendamento" class="hover:text-primary-400 transition-colors">Convênios
+                                Aceitos</a></li>
+                    </ul>
+                </div>
+
+                <!-- Especialidades -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Principais Serviços</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-primary-400 transition-colors">Clínica Médica</a></li>
+                        <li><a href="#" class="hover:text-primary-400 transition-colors">Cardiologia</a></li>
+                        <li><a href="#" class="hover:text-primary-400 transition-colors">Pediatria</a></li>
+                        <li><a href="#" class="hover:text-primary-400 transition-colors">Exames de Imagem</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-primary-400 transition-colors">Termos de Uso</a></li>
+                        <li><a href="#" class="hover:text-primary-400 transition-colors">Política de Privacidade</a>
+                        </li>
+                        <li><a href="#" class="hover:text-primary-400 transition-colors">Direitos do Paciente</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+                <p>&copy; 2026 Clínica Vida & Saúde. Todos os direitos reservados.</p>
+                <p class="mt-2 md:mt-0">Responsável Técnico: Dr. João Silva - CRM 12345/SP</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript para interatividade -->
+    <script>
+        // Menu Mobile Toggle
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        const menuIcon = btn.querySelector('i');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+            if (menu.classList.contains('hidden')) {
+                menuIcon.classList.remove('fa-xmark');
+                menuIcon.classList.add('fa-bars');
+            } else {
+                menuIcon.classList.remove('fa-bars');
+                menuIcon.classList.add('fa-xmark');
+            }
+        });
+
+        // Fechar menu mobile ao clicar em um link
+        const mobileLinks = menu.querySelectorAll('a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+                menuIcon.classList.remove('fa-xmark');
+                menuIcon.classList.add('fa-bars');
+            });
+        });
+
+        // Navbar muda de estilo ao scrollar
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                navbar.classList.add('shadow-md');
+                navbar.classList.remove('py-2');
+            } else {
+                navbar.classList.remove('shadow-md');
+                navbar.classList.add('py-2');
+            }
+        });
+
+        // Simulação de envio do formulário
+        const form = document.getElementById('booking-form');
+        const successMsg = document.getElementById('success-message');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); // Evita recarregar a página
+
+            // Aqui entraria a lógica real de envio (ex: fetch para API)
+
+            // Mostra mensagem de sucesso
+            successMsg.classList.remove('hidden');
+
+            // Limpa o formulário
+            form.reset();
+
+            // Esconde a mensagem após 5 segundos
+            setTimeout(() => {
+                successMsg.classList.add('hidden');
+            }, 5000);
+        });
+
+        // Restringir data de agendamento para não selecionar dias no passado
+        const dataInput = document.getElementById('data');
+        const hoje = new Date().toISOString().split('T');
+        dataInput.setAttribute('min', hoje);
+    </script>
+</body>
+
+</html>

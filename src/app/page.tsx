@@ -27,13 +27,22 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpRight,
-  ArrowDownLeft
+  ArrowDownLeft,
+  Stethoscope,
+  Scale,
+  Building2,
+  Palette,
+  ShoppingCart,
+  LayoutTemplate,
+  ChevronDown
 } from 'lucide-react';
+
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeN8nTab, setActiveN8nTab] = useState(0);
+  const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
 
   const n8nUseCases = [
     {
@@ -119,6 +128,84 @@ export default function Home() {
     }
   };
 
+  const templatesSites = [
+    {
+      id: 'medico',
+      title: 'Clínicas & Área Médica',
+      description: 'Transmita confiança. Site focado em agendamentos, apresentação de especialidades, corpo clínico e convênios.',
+      icon: Stethoscope,
+      color: 'text-teal-400',
+      bgMockup: 'bg-teal-900/20'
+    },
+    {
+      id: 'advogado',
+      title: 'Escritórios de Advocacia',
+      description: 'Sóbrio e imponente. Destaque suas áreas de atuação, artigos jurídicos e facilite o contato de novos clientes.',
+      icon: Scale,
+      color: 'text-amber-500',
+      bgMockup: 'bg-slate-900'
+    },
+    {
+      id: 'institucional',
+      title: 'Empresarial & Institucional',
+      description: 'A vitrine perfeita para sua empresa. Apresente seus serviços, história e diferenciais competitivos com alta performance.',
+      icon: Building2,
+      color: 'text-blue-500',
+      bgMockup: 'bg-blue-900/20'
+    },
+    {
+      id: 'portfolio',
+      title: 'Portfólio Criativo',
+      description: 'Ideal para arquitetos, designers e fotógrafos. Um layout visualmente impactante para destacar seus melhores projetos.',
+      icon: Palette,
+      color: 'text-pink-500',
+      bgMockup: 'bg-pink-900/10'
+    },
+    {
+      id: 'loja',
+      title: 'E-commerce & Lojas',
+      description: 'Venda mais online. Lojas rápidas, responsivas e otimizadas, com carrinho dinâmico e gestão de produtos.',
+      icon: ShoppingCart,
+      color: 'text-emerald-500',
+      bgMockup: 'bg-emerald-900/20'
+    }
+  ];
+
+  const toggleTemplate = (id: string) => {
+    setExpandedTemplate(expandedTemplate === id ? null : id);
+  };
+
+  const renderMockupContent = (id: string) => {
+    let iframeSrc = '';
+    switch (id) {
+      case 'medico':
+        iframeSrc = '/templates/clinica_medica.html';
+        break;
+      case 'advogado':
+        iframeSrc = '/templates/escritorio_advocacia.html';
+        break;
+      case 'institucional':
+        iframeSrc = '/templates/empresarial_institucional.html';
+        break;
+      case 'portfolio':
+        iframeSrc = '/templates/portifolio_criativo.html';
+        break;
+      case 'loja':
+        iframeSrc = '/templates/ecommerce.html';
+        break;
+      default:
+        return null;
+    }
+
+    return (
+      <iframe
+        src={iframeSrc}
+        className="w-full h-full border-0"
+        title={`Template ${id}`}
+      />
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-blue-500/30">
 
@@ -133,6 +220,7 @@ export default function Home() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-300">
             <button onClick={() => scrollToSection('portfolio')} className="hover:text-blue-400 transition-colors">Portfólio</button>
+            <button onClick={() => scrollToSection('modelos')} className="hover:text-blue-400 transition-colors">Modelos</button>
             <button onClick={() => scrollToSection('produtos')} className="hover:text-blue-400 transition-colors">Produtos</button>
             <button onClick={() => scrollToSection('automacao')} className="hover:text-blue-400 transition-colors">Automação (n8n)</button>
             <button onClick={() => scrollToSection('contato')} className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
@@ -151,6 +239,7 @@ export default function Home() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 text-xl border-b border-slate-800 md:hidden">
           <button onClick={() => scrollToSection('portfolio')} className="hover:text-blue-400 transition-colors">Portfólio</button>
+          <button onClick={() => scrollToSection('modelos')} className="hover:text-blue-400 transition-colors">Modelos</button>
           <button onClick={() => scrollToSection('produtos')} className="hover:text-blue-400 transition-colors">Produtos</button>
           <button onClick={() => scrollToSection('automacao')} className="hover:text-blue-400 transition-colors">Automação (n8n)</button>
           <button onClick={() => scrollToSection('contato')} className="text-blue-400 font-bold">Contato</button>
@@ -201,37 +290,37 @@ export default function Home() {
             {/* Portfolio Item 1 */}
             <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
               <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                {/* Fallback pattern instead of real image */}
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900"></div>
-                <Scissors className="w-20 h-20 text-slate-600 relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                <img src="/assets/AlthairSanto.png" alt="Althair Santo" className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110" />
               </div>
               <div className="p-8">
                 <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">MODA & ESTILO</div>
                 <h3 className="text-2xl font-bold mb-3">Althair Santo</h3>
                 <p className="text-slate-400 mb-6">Site institucional e portfólio digital desenvolvido para o renomado estilista, destacando coleções e identidade visual elegante.</p>
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
+                <a href="https://www.althairsanto.com.br" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
               </div>
             </div>
 
             {/* Portfolio Item 2 */}
             <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
               <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900"></div>
-                <Database className="w-20 h-20 text-slate-600 relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                <img src="/assets/Nardelli.png" alt="Nardelli Usinagem" className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110 z-0" />
+                {/* <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900 relative z-10"></div>
+                <Database className="w-20 h-20 text-slate-600 relative z-20 group-hover:scale-110 transition-transform duration-500" /> */}
               </div>
               <div className="p-8">
                 <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">INDÚSTRIA</div>
                 <h3 className="text-2xl font-bold mb-3">Nardelli Usinagem</h3>
                 <p className="text-slate-400 mb-6">Plataforma B2B para apresentação de serviços de usinagem de precisão, maquinário e formulário de orçamento complexo.</p>
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
+                <a href="https://www.nardelliusinagem.com.br" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
               </div>
             </div>
 
             {/* Portfolio Item 3 */}
             <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
               <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900"></div>
-                <Monitor className="w-20 h-20 text-slate-600 relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                {/* <img src="/portfolio/onca.jpg" alt="Onça Filmes" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 z-0" /> */}
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900 relative z-10"></div>
+                <Monitor className="w-20 h-20 text-slate-600 relative z-20 group-hover:scale-110 transition-transform duration-500" />
               </div>
               <div className="p-8">
                 <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">AUDIOVISUAL</div>
@@ -244,8 +333,9 @@ export default function Home() {
             {/* Portfolio Item 4 */}
             <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
               <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900"></div>
-                <Briefcase className="w-20 h-20 text-slate-600 relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                {/* <img src="/portfolio/advocacia.jpg" alt="Escritório de Advocacia" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 z-0" /> */}
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900 relative z-10"></div>
+                <Briefcase className="w-20 h-20 text-slate-600 relative z-20 group-hover:scale-110 transition-transform duration-500" />
               </div>
               <div className="p-8">
                 <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">JURÍDICO</div>
@@ -254,6 +344,89 @@ export default function Home() {
                 <a href="#" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NOVO: Section Modelos de Sites */}
+      <section id="modelos" className="py-24 bg-slate-950 border-t border-slate-800 relative">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="container mx-auto px-6 md:px-12 relative z-10">
+          <div className="mb-16 text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-900/30 border border-blue-800/50 text-blue-400 text-sm font-medium mb-6">
+              <LayoutTemplate className="w-4 h-4" />
+              Templates Premium
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">Modelos de Sites</h2>
+            <p className="text-slate-400 text-lg">
+              Precisa de agilidade? Temos estruturas de alta conversão prontas para o seu nicho. Clique nos cards abaixo para visualizar a estrutura de cada modelo.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {templatesSites.map((template) => {
+              const Icon = template.icon;
+              const isExpanded = expandedTemplate === template.id;
+
+              return (
+                <div
+                  key={template.id}
+                  onClick={() => toggleTemplate(template.id)}
+                  className={`
+                    cursor-pointer transition-all duration-500 ease-in-out border rounded-2xl overflow-hidden
+                    ${isExpanded
+                      ? 'md:col-span-2 bg-slate-900 border-blue-500/50 shadow-[0_0_30px_rgba(37,99,235,0.1)]'
+                      : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900'}
+                  `}
+                >
+                  {/* Cabeçalho do Card (Sempre visível) */}
+                  <div className={`p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 transition-colors ${isExpanded ? 'border-b border-slate-800' : ''}`}>
+                    <div className="flex items-start gap-5">
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${template.bgMockup} ${template.color} bg-opacity-20`}>
+                        <Icon className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold mb-2 text-white">{template.title}</h3>
+                        <p className={`text-slate-400 text-sm leading-relaxed ${isExpanded ? 'max-w-3xl' : 'max-w-md'}`}>
+                          {template.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'bg-slate-800 rotate-180' : 'bg-slate-800/50'}`}>
+                      <ChevronDown className={`w-5 h-5 ${isExpanded ? 'text-blue-400' : 'text-slate-400'}`} />
+                    </div>
+                  </div>
+
+                  {/* Conteúdo Expandido (Mockup do Site) */}
+                  <div
+                    className={`transition-all duration-500 ease-in-out overflow-hidden`}
+                    style={{ maxHeight: isExpanded ? '800px' : '0px', opacity: isExpanded ? 1 : 0 }}
+                  >
+                    <div className="p-8 pt-6">
+                      <div className="bg-slate-950 border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+                        {/* Barra do Navegador */}
+                        <div className="bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-slate-700">
+                          <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                          <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                          <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                          <div className="ml-4 bg-slate-900 rounded-md h-6 flex-1 max-w-sm flex items-center px-3">
+                            <span className="text-slate-500 text-xs font-mono truncate">https://seu-dominio.com.br/{template.id}</span>
+                          </div>
+                        </div>
+                        {/* Corpo do Site (Renderizado por função) */}
+                        <div className="h-[400px] md:h-[500px] overflow-hidden relative">
+                          {renderMockupContent(template.id)}
+
+                          {/* Gradiente para disfarçar o corte na base */}
+                          <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Átrio | Portfólio para Arquitetos, Designers e Fotógrafos</title>
+    <!-- Google Fonts + Font Awesome -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #fefcf8;
+            font-family: 'Inter', sans-serif;
+            color: #1e1e1e;
+            scroll-behavior: smooth;
+            line-height: 1.4;
+        }
+
+        /* custom scroll */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #eae6df;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #b8aa9a;
+            border-radius: 8px;
+        }
+
+        /* container padrão */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(254, 252, 248, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 20px 0;
+            transition: all 0.2s;
+        }
+
+        .header .container {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #2c2c2c, #6b4e3a);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #2c2c2c;
+            transition: 0.2s;
+            letter-spacing: -0.2px;
+        }
+
+        .nav-links a:hover {
+            color: #a05e3a;
+        }
+
+        /* hero */
+        .hero {
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2)), url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80') center/cover no-repeat;
+            background-attachment: fixed;
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .hero-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+
+        .btn-outline-light {
+            display: inline-block;
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 12px 32px;
+            font-weight: 600;
+            border-radius: 40px;
+            text-decoration: none;
+            transition: 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-outline-light:hover {
+            background: white;
+            color: #1e1e1e;
+            border-color: white;
+        }
+
+        /* filter section */
+        .portfolio-header {
+            text-align: center;
+            margin: 64px 0 32px;
+        }
+
+        .portfolio-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .portfolio-header p {
+            color: #5e5b56;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 40px 0 48px;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid #dcd7cf;
+            padding: 8px 24px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.25s;
+            color: #3b3a36;
+        }
+
+        .filter-btn.active {
+            background: #1e1e1e;
+            border-color: #1e1e1e;
+            color: white;
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: #e9e2d8;
+            border-color: #cbc3b8;
+        }
+
+        /* project grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 32px;
+            margin-bottom: 80px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.05);
+            transform: translateY(0px);
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 35px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .project-card:hover .card-img {
+            transform: scale(1.02);
+        }
+
+        .card-info {
+            padding: 22px 20px 26px;
+        }
+
+        .card-category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            color: #a05e3a;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 1.45rem;
+            font-weight: 600;
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 8px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #5c5a55;
+            line-height: 1.4;
+        }
+
+        /* about section */
+        .about-section {
+            background: #f3efe9;
+            padding: 80px 0;
+            margin: 20px 0 0;
+        }
+
+        .about-inner {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 48px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .about-text {
+            flex: 1.2;
+        }
+
+        .about-text h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .about-text p {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #3a3732;
+            margin-bottom: 24px;
+        }
+
+        .about-signature {
+            font-style: italic;
+            border-left: 3px solid #a05e3a;
+            padding-left: 20px;
+            font-weight: 400;
+            color: #6b4e3a;
+        }
+
+        .about-stats {
+            flex: 1;
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+            background: white;
+            padding: 28px 20px;
+            border-radius: 28px;
+            min-width: 130px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.02);
+        }
+
+        .stat-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+            color: #1e1e1e;
+        }
+
+        /* contact */
+        .contact-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .contact-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 48px;
+            margin: 48px 0 32px;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-item i {
+            font-size: 2rem;
+            color: #a05e3a;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 32px;
+        }
+
+        .social-links a {
+            color: #2c2c2c;
+            font-size: 1.5rem;
+            transition: 0.2s;
+        }
+
+        .social-links a:hover {
+            color: #a05e3a;
+            transform: translateY(-3px);
+        }
+
+        footer {
+            background: #1e1e1e;
+            color: #ccc;
+            text-align: center;
+            padding: 28px 0;
+            font-size: 0.8rem;
+        }
+
+        /* MODAL LIGHTBOX */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .modal-content {
+            background: #fefcf8;
+            max-width: 900px;
+            width: 90%;
+            border-radius: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: default;
+            animation: fadeUp 0.3s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-img {
+            width: 100%;
+            max-height: 55vh;
+            object-fit: cover;
+        }
+
+        .modal-text {
+            padding: 28px 32px 36px;
+        }
+
+        .modal-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #a05e3a;
+            font-weight: 600;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-family: 'Playfair Display', serif;
+            margin: 8px 0 12px;
+        }
+
+        .modal-desc {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #3b3a36;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-modal:hover {
+            background: #a05e3a;
+            transform: scale(1.03);
+        }
+
+        @media (max-width: 800px) {
+            .container {
+                padding: 0 24px;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 24px;
+            }
+
+            .about-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .about-signature {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 580px) {
+            .header .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .filter-btn {
+                padding: 6px 18px;
+                font-size: 0.75rem;
+            }
+        }
+
+        .no-results {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 60px;
+            font-size: 1.2rem;
+            color: #7a6e62;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo">ÁTRIO STUDIO</div>
+            <div class="nav-links">
+                <a href="#portfolio">Portfólio</a>
+                <a href="#about">Coletivo</a>
+                <a href="#contact">Contato</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Matéria, luz & narrativa</h1>
+            <p>Arquitetura · Design autoral · Fotografia de autor</p>
+            <a href="#portfolio" class="btn-outline-light">Explorar projetos</a>
+        </div>
+    </section>
+
+    <div class="container" id="portfolio">
+        <div class="portfolio-header">
+            <h2>Curadoria de obras</h2>
+            <p>Projetos que traduzem visão estética e funcionalidade — assinados por mentes criativas.</p>
+        </div>
+        <div class="filter-buttons" id="filterButtons">
+            <button class="filter-btn active" data-filter="all">Todos</button>
+            <button class="filter-btn" data-filter="Arquitetura">Arquitetura</button>
+            <button class="filter-btn" data-filter="Design">Design</button>
+            <button class="filter-btn" data-filter="Fotografia">Fotografia</button>
+        </div>
+        <div class="projects-grid" id="projectsGrid"></div>
+    </div>
+
+    <section class="about-section" id="about">
+        <div class="container about-inner">
+            <div class="about-text">
+                <h3>Um encontro entre disciplinas</h3>
+                <p>Somos um estúdio fluido que conecta arquitetos, designers e fotógrafos em uma curadoria exclusiva.
+                    Cada projeto destaca a singularidade do espaço, do objeto e do olhar. Criamos pontes entre estética
+                    bruta e sensibilidade tátil.</p>
+                <div class="about-signature">“A beleza nasce do propósito e da emoção.”</div>
+            </div>
+            <div class="about-stats">
+                <div class="stat">
+                    <div class="stat-number">+40</div>
+                    <div>projetos autorais</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">12</div>
+                    <div>prêmios de design</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">8</div>
+                    <div>exposições</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <h3>Vamos criar em conjunto</h3>
+            <p style="max-width: 500px; margin: 0 auto; color: #5c5a55;">Para colaborações, direção criativa ou
+                imprensa.</p>
+            <div class="contact-info">
+                <div class="contact-item"><i class="fas fa-envelope"></i><span>studio@atriocriativo.com</span></div>
+                <div class="contact-item"><i class="fas fa-map-marker-alt"></i><span>Lisboa / São Paulo</span></div>
+            </div>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-behance"></i></a>
+                <a href="#"><i class="fab fa-pinterest"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© ÁTRIO STUDIO — Para arquitetos, designers e fotógrafos.</p>
+    </footer>
+
+    <!-- Modal Lightbox -->
+    <div id="projectModal" class="modal">
+        <div class="close-modal" id="closeModalBtn">&times;</div>
+        <div class="modal-content" id="modalContent">
+            <img id="modalImage" class="modal-img" src="" alt="project large">
+            <div class="modal-text">
+                <div class="modal-category" id="modalCategory"></div>
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-desc" id="modalDesc"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- PROJETOS (Arquitetura, Design, Fotografia) ----------
+        const projectsData = [
+            {
+                id: 1,
+                title: "Casa Pipa",
+                category: "Arquitetura",
+                description: "Residência em concreto aparente com integração total à paisagem costeira. Painéis de vidro e vegetação nativa.",
+                image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format"
+            },
+            {
+                id: 2,
+                title: "Banqueta Núcleo",
+                category: "Design",
+                description: "Design de mobiliário em madeira maciça e assento de linho. Peça exclusiva para espaços de convivência.",
+                image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=1200&auto=format"
+            },
+            {
+                id: 3,
+                title: "Poéticas Urbanas",
+                category: "Fotografia",
+                description: "Ensaio fotográfico documental sobre texturas urbanas e contrastes arquitetônicos em preto e branco.",
+                image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&auto=format"
+            },
+            {
+                id: 4,
+                title: "Pavilhão Líquido",
+                category: "Arquitetura",
+                description: "Estrutura efêmera inspirada em formas orgânicas, utilizando aço corten e iluminação imersiva.",
+                image: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=1200&auto=format"
+            },
+            {
+                id: 5,
+                title: "Cerâmica Terrestre",
+                category: "Design",
+                description: "Coleção de peças cerâmicas esmaltadas à mão, explorando a imperfeição e a matéria orgânica.",
+                image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe461?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe461?w=1200&auto=format"
+            },
+            {
+                id: 6,
+                title: "Vazio & Luz",
+                category: "Fotografia",
+                description: "Série fotográfica que investiga a quietude de interiores minimalistas e o movimento da luz natural.",
+                image: "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=1200&auto=format"
+            },
+            {
+                id: 7,
+                title: "Galeria Serpentina",
+                category: "Arquitetura",
+                description: "Centro de arte contemporânea com fachada cinética e integração com parque urbano.",
+                image: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1200&auto=format"
+            },
+            {
+                id: 8,
+                title: "Lounge Etéreo",
+                category: "Design",
+                description: "Espaço de convivência com mobiliário modular, tapetes artesanais e paleta terrosa.",
+                image: "https://images.unsplash.com/photo-1618220179428-22790b461013?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1618220179428-22790b461013?w=1200&auto=format"
+            },
+            {
+                id: 9,
+                title: "Geografias Silenciosas",
+                category: "Fotografia",
+                description: "Registro de paisagens islandesas, tons monocromáticos e atmosfera contemplativa.",
+                image: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=700&auto=format",
+                largeImage: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=1200&auto=format"
+            }
+        ];
+
+        // referências DOM
+        const gridContainer = document.getElementById('projectsGrid');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        let activeFilter = 'all';
+
+        // função para renderizar cards com base no filtro
+        function renderProjects() {
+            let filteredProjects = projectsData;
+            if (activeFilter !== 'all') {
+                filteredProjects = projectsData.filter(proj => proj.category === activeFilter);
+            }
+
+            if (filteredProjects.length === 0) {
+                gridContainer.innerHTML = `<div class="no-results"><i class="fas fa-compass"></i> Nenhum projeto encontrado nessa categoria.</div>`;
+                return;
+            }
+
+            let cardsHtml = '';
+            filteredProjects.forEach(proj => {
+                cardsHtml += `
+        <div class="project-card" data-id="${proj.id}" data-category="${proj.category}">
+          <img class="card-img" src="${proj.image}" alt="${proj.title}" loading="lazy">
+          <div class="card-info">
+            <div class="card-category">${proj.category}</div>
+            <div class="card-title">${proj.title}</div>
+            <div class="card-desc">${proj.description.substring(0, 80)}${proj.description.length > 80 ? '…' : ''}</div>
+          </div>
+        </div>
+      `;
+            });
+            gridContainer.innerHTML = cardsHtml;
+        }
+
+        // modal e lógica de abertura
+        const modal = document.getElementById('projectModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalCategory = document.getElementById('modalCategory');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        function openModal(projectId) {
+            const project = projectsData.find(p => p.id == projectId);
+            if (!project) return;
+            modalImg.src = project.largeImage;
+            modalCategory.textContent = project.category;
+            modalTitle.textContent = project.title;
+            modalDesc.textContent = project.description;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // event delegation para abrir modal nos cards (grid dinâmico)
+        gridContainer.addEventListener('click', (e) => {
+            let targetCard = e.target.closest('.project-card');
+            if (targetCard) {
+                const projectId = targetCard.getAttribute('data-id');
+                if (projectId) openModal(projectId);
+            }
+        });
+
+        // fechar modal por X, overlay ou ESC
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+        });
+
+        // filtros ativos
+        function setActiveFilter(filterValue) {
+            activeFilter = filterValue;
+            filterBtns.forEach(btn => {
+                if (btn.getAttribute('data-filter') === filterValue) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            renderProjects();
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const filterVal = btn.getAttribute('data-filter');
+                setActiveFilter(filterVal);
+            });
+        });
+
+        // smooth scroll para links internos
+        document.querySelectorAll('.nav-links a, .hero .btn-outline-light').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else if (this.classList.contains('btn-outline-light') && this.getAttribute('href') === '#portfolio') {
+                    document.getElementById('portfolio').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Inicialização
+        renderProjects();
+    </script>
+</body>
+
+</html>

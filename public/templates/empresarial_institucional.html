@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corpova | Excelência Empresarial</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6', // Teal primary
+                            600: '#0d9488',
+                            900: '#0f172a', // Slate dark
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS for Animations -->
+    <style>
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hero-overlay {
+            background: linear-gradient(to right, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.4) 100%);
+        }
+
+        /* Glassmorphism for floating nav */
+        .nav-scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-scrolled .nav-link {
+            color: #0f172a;
+        }
+
+        .nav-scrolled .logo-text {
+            color: #0f172a;
+        }
+
+        /* Default transparent nav */
+        .nav-transparent {
+            background: transparent;
+        }
+
+        .nav-transparent .nav-link {
+            color: #ffffff;
+        }
+
+        .nav-transparent .logo-text {
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-800 bg-gray-50 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 nav-transparent py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-12">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer">
+                    <i class="ph-fill ph-buildings text-3xl text-brand-500 mr-2"></i>
+                    <span
+                        class="font-bold text-2xl tracking-tight logo-text transition-colors duration-300">Corpova.</span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#inicio" class="nav-link font-medium hover:text-brand-500 transition-colors">Início</a>
+                    <a href="#sobre" class="nav-link font-medium hover:text-brand-500 transition-colors">Sobre Nós</a>
+                    <a href="#servicos" class="nav-link font-medium hover:text-brand-500 transition-colors">Serviços</a>
+                    <a href="#diferenciais"
+                        class="nav-link font-medium hover:text-brand-500 transition-colors">Diferenciais</a>
+                    <a href="#contato"
+                        class="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg shadow-brand-500/30">
+                        Fale Conosco
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i class="ph ph-list text-3xl" id="menu-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-white shadow-xl absolute w-full top-full left-0 border-t border-gray-100">
+            <div class="px-4 pt-2 pb-6 space-y-2 text-center">
+                <a href="#inicio"
+                    class="block px-3 py-3 text-gray-800 font-medium hover:bg-gray-50 rounded-md">Início</a>
+                <a href="#sobre" class="block px-3 py-3 text-gray-800 font-medium hover:bg-gray-50 rounded-md">Sobre
+                    Nós</a>
+                <a href="#servicos"
+                    class="block px-3 py-3 text-gray-800 font-medium hover:bg-gray-50 rounded-md">Serviços</a>
+                <a href="#diferenciais"
+                    class="block px-3 py-3 text-gray-800 font-medium hover:bg-gray-50 rounded-md">Diferenciais</a>
+                <a href="#contato" class="block mt-4 px-3 py-3 bg-brand-500 text-white font-medium rounded-md mx-4">Fale
+                    Conosco</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+        <!-- Background Image -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1920"
+                alt="Corporate Office" class="w-full h-full object-cover object-center" />
+            <div class="absolute inset-0 hero-overlay"></div>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left w-full">
+            <div class="max-w-3xl reveal">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white text-sm font-medium mb-6">
+                    <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                    Soluções Corporativas Avançadas
+                </div>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
+                    Transformando Visão em <span class="text-brand-500">Resultados Sólidos.</span>
+                </h1>
+                <p class="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl leading-relaxed">
+                    A vitrine perfeita para a sua empresa. Apresente seus serviços, história e diferenciais competitivos
+                    com alta performance e design impecável.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#servicos"
+                        class="bg-brand-500 hover:bg-brand-600 text-white px-8 py-4 rounded-lg font-semibold text-center transition-all shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 group">
+                        Nossos Serviços
+                        <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a href="#contato"
+                        class="bg-transparent border border-white text-white hover:bg-white hover:text-brand-900 px-8 py-4 rounded-lg font-semibold text-center transition-all">
+                        Solicitar Proposta
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+            <a href="#sobre" class="text-white/70 hover:text-white transition-colors">
+                <i class="ph ph-caret-down text-3xl"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Partners / Trust Bar -->
+    <div class="bg-white py-10 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-sm font-semibold text-gray-400 uppercase tracking-wider mb-6 reveal">Empresas que
+                confiam em nosso trabalho</p>
+            <div
+                class="flex flex-wrap justify-center gap-10 md:gap-20 opacity-50 grayscale hover:grayscale-0 transition-all duration-500 reveal">
+                <div class="flex items-center gap-2 text-xl font-bold text-gray-800"><i
+                        class="ph-fill ph-hexagon text-3xl"></i> Acxion</div>
+                <div class="flex items-center gap-2 text-xl font-bold text-gray-800"><i
+                        class="ph-fill ph-triangle text-3xl"></i> Vertex</div>
+                <div class="flex items-center gap-2 text-xl font-bold text-gray-800"><i
+                        class="ph-fill ph-circle text-3xl"></i> GlobalSys</div>
+                <div class="flex items-center gap-2 text-xl font-bold text-gray-800"><i
+                        class="ph-fill ph-square text-3xl"></i> Nexus</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section (História) -->
+    <section id="sobre" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Image -->
+                <div class="relative reveal">
+                    <div class="absolute -inset-4 bg-brand-100 rounded-3xl transform rotate-3 -z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32d7?auto=format&fit=crop&q=80&w=1000"
+                        alt="Nossa Equipe" class="rounded-2xl shadow-xl w-full object-cover h-[500px]">
+                    <!-- Floating card -->
+                    <div class="absolute -bottom-6 -right-6 bg-white p-6 rounded-xl shadow-2xl">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="bg-brand-500 text-white w-14 h-14 rounded-full flex items-center justify-center font-bold text-2xl">
+                                15
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">Anos de</p>
+                                <p class="font-bold text-brand-900">Experiência</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="reveal">
+                    <h2 class="text-brand-500 font-semibold tracking-wide uppercase text-sm mb-2">Quem Somos</h2>
+                    <h3 class="text-3xl md:text-4xl font-bold text-brand-900 mb-6 leading-tight">
+                        Construindo o futuro através de estratégias inteligentes.
+                    </h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Nascemos com o propósito de elevar o padrão do mercado corporativo. Nossa história é marcada por
+                        inovações consistentes, parcerias duradouras e resultados que falam por si mesmos.
+                    </p>
+                    <p class="text-gray-600 mb-8 leading-relaxed">
+                        Combinamos expertise técnica com visão de negócios para entregar não apenas serviços, mas
+                        soluções que geram valor real e vantagem competitiva para nossos clientes.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-brand-50 text-brand-500 p-2 rounded-lg mt-1">
+                                <i class="ph-bold ph-target text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-brand-900">Nossa Missão</h4>
+                                <p class="text-sm text-gray-600">Impulsionar o crescimento de negócios através de
+                                    tecnologia e gestão eficiente.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="bg-brand-50 text-brand-500 p-2 rounded-lg mt-1">
+                                <i class="ph-bold ph-eye text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-brand-900">Nossa Visão</h4>
+                                <p class="text-sm text-gray-600">Ser referência global em soluções corporativas
+                                    integradas até 2030.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="servicos" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-brand-500 font-semibold tracking-wide uppercase text-sm mb-2">O que fazemos</h2>
+                <h3 class="text-3xl md:text-4xl font-bold text-brand-900 mb-4">Soluções completas para a sua empresa
+                </h3>
+                <p class="text-gray-600">Um portfólio robusto desenhado para atender às demandas mais complexas do
+                    mercado corporativo atual.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group reveal">
+                    <div
+                        class="w-14 h-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-500 mb-6 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                        <i class="ph-light ph-chart-line-up text-3xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Consultoria Estratégica</h4>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Análise profunda do seu modelo de negócios para
+                        identificar oportunidades de crescimento, otimização de custos e expansão de mercado.</p>
+                    <a href="#"
+                        class="text-brand-500 font-medium inline-flex items-center gap-1 group-hover:text-brand-600">
+                        Saiba mais <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Service 2 -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group reveal">
+                    <div
+                        class="w-14 h-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-500 mb-6 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                        <i class="ph-light ph-cpu text-3xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Transformação Digital</h4>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Digitalizamos seus processos internos e externos,
+                        integrando tecnologias de ponta para aumentar a eficiência operacional e a experiência do
+                        cliente.</p>
+                    <a href="#"
+                        class="text-brand-500 font-medium inline-flex items-center gap-1 group-hover:text-brand-600">
+                        Saiba mais <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Service 3 -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group reveal">
+                    <div
+                        class="w-14 h-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-500 mb-6 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                        <i class="ph-light ph-users-three text-3xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Gestão de Talentos</h4>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Atraímos, desenvolvemos e retemos os melhores
+                        profissionais para construir equipes de alta performance alinhadas à sua cultura.</p>
+                    <a href="#"
+                        class="text-brand-500 font-medium inline-flex items-center gap-1 group-hover:text-brand-600">
+                        Saiba mais <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Service 4 -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group reveal">
+                    <div
+                        class="w-14 h-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-500 mb-6 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                        <i class="ph-light ph-shield-check text-3xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Segurança e Compliance</h4>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Proteção de dados avançada e adequação total às normas
+                        regulatórias (LGPD) para mitigar riscos corporativos.</p>
+                    <a href="#"
+                        class="text-brand-500 font-medium inline-flex items-center gap-1 group-hover:text-brand-600">
+                        Saiba mais <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Service 5 -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group reveal">
+                    <div
+                        class="w-14 h-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-500 mb-6 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                        <i class="ph-light ph-wallet text-3xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Gestão Financeira</h4>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Estruturação de fluxo de caixa, planejamento tributário e
+                        análises financeiras para garantir a saúde e escalabilidade do negócio.</p>
+                    <a href="#"
+                        class="text-brand-500 font-medium inline-flex items-center gap-1 group-hover:text-brand-600">
+                        Saiba mais <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Service 6 -->
+                <div
+                    class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group reveal">
+                    <div
+                        class="w-14 h-14 bg-brand-50 rounded-xl flex items-center justify-center text-brand-500 mb-6 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                        <i class="ph-light ph-megaphone text-3xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Marketing Corporativo</h4>
+                    <p class="text-gray-600 mb-6 line-clamp-3">Estratégias de posicionamento de marca, comunicação B2B e
+                        captação de leads qualificados para impulsionar vendas.</p>
+                    <a href="#"
+                        class="text-brand-500 font-medium inline-flex items-center gap-1 group-hover:text-brand-600">
+                        Saiba mais <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Differentials (Diferenciais) -->
+    <section id="diferenciais" class="py-24 bg-brand-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="reveal">
+                    <h2 class="text-brand-500 font-semibold tracking-wide uppercase text-sm mb-2">Por que nos escolher?
+                    </h2>
+                    <h3 class="text-3xl md:text-4xl font-bold mb-6 leading-tight text-white">
+                        Vantagem competitiva que se reflete no seu balanço.
+                    </h3>
+                    <p class="text-gray-300 mb-8 leading-relaxed">
+                        Não somos apenas fornecedores, somos parceiros estratégicos. Nossa metodologia ágil e foco
+                        implacável em métricas garantem que cada projeto traga retorno sobre investimento (ROI)
+                        mensurável.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="flex flex-col gap-2">
+                            <i class="ph-fill ph-check-circle text-brand-500 text-3xl"></i>
+                            <h4 class="font-bold text-lg">Suporte 24/7</h4>
+                            <p class="text-sm text-gray-400">Atendimento dedicado e monitoramento ininterrupto para sua
+                                operação.</p>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <i class="ph-fill ph-check-circle text-brand-500 text-3xl"></i>
+                            <h4 class="font-bold text-lg">Time Sênior</h4>
+                            <p class="text-sm text-gray-400">Especialistas com vivência real em grandes corporações.</p>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <i class="ph-fill ph-check-circle text-brand-500 text-3xl"></i>
+                            <h4 class="font-bold text-lg">Tecnologia Proprietária</h4>
+                            <p class="text-sm text-gray-400">Ferramentas exclusivas desenvolvidas para otimizar nossos
+                                serviços.</p>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <i class="ph-fill ph-check-circle text-brand-500 text-3xl"></i>
+                            <h4 class="font-bold text-lg">Garantia de Qualidade</h4>
+                            <p class="text-sm text-gray-400">SLA rigoroso e métricas de desempenho transparentes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-4 reveal">
+                    <div
+                        class="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm text-center transform translate-y-4">
+                        <h3 class="text-4xl font-extrabold text-brand-500 mb-2">98%</h3>
+                        <p class="text-gray-300 text-sm">Clientes Satisfeitos</p>
+                    </div>
+                    <div class="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm text-center">
+                        <h3 class="text-4xl font-extrabold text-brand-500 mb-2">+500</h3>
+                        <p class="text-gray-300 text-sm">Projetos Entregues</p>
+                    </div>
+                    <div
+                        class="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm text-center transform translate-y-4">
+                        <h3 class="text-4xl font-extrabold text-brand-500 mb-2">15+</h3>
+                        <p class="text-gray-300 text-sm">Prêmios do Setor</p>
+                    </div>
+                    <div class="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm text-center">
+                        <h3 class="text-4xl font-extrabold text-brand-500 mb-2">40h</h3>
+                        <p class="text-gray-300 text-sm">Economizadas/mês em média</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA / Contact Section -->
+    <section id="contato" class="py-24 bg-white relative overflow-hidden">
+        <!-- Decorative background elements -->
+        <div
+            class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 bg-brand-50 rounded-full blur-3xl opacity-50 pointer-events-none">
+        </div>
+        <div
+            class="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden reveal">
+                <div class="grid grid-cols-1 lg:grid-cols-5">
+
+                    <!-- Contact Info -->
+                    <div class="lg:col-span-2 bg-brand-900 text-white p-10 md:p-12">
+                        <h3 class="text-3xl font-bold mb-4">Vamos conversar?</h3>
+                        <p class="text-gray-300 mb-10">Preencha o formulário e um de nossos especialistas entrará em
+                            contato em até 24 horas úteis.</p>
+
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white/10 p-3 rounded-full">
+                                    <i class="ph-fill ph-map-pin text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Endereço</p>
+                                    <p class="text-sm text-gray-300">Av. Paulista, 1000 - Bela Vista<br>São Paulo - SP,
+                                        01310-100</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white/10 p-3 rounded-full">
+                                    <i class="ph-fill ph-phone text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Telefone</p>
+                                    <p class="text-sm text-gray-300">+55 (11) 4000-0000</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white/10 p-3 rounded-full">
+                                    <i class="ph-fill ph-envelope-simple text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">E-mail</p>
+                                    <p class="text-sm text-gray-300">contato@corpova.com.br</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Social -->
+                        <div class="mt-12">
+                            <p class="text-sm font-medium mb-4">Siga-nos nas redes</p>
+                            <div class="flex gap-4">
+                                <a href="#" class="bg-white/10 hover:bg-brand-500 p-2 rounded-full transition-colors">
+                                    <i class="ph-fill ph-linkedin-logo text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-white/10 hover:bg-brand-500 p-2 rounded-full transition-colors">
+                                    <i class="ph-fill ph-instagram-logo text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-white/10 hover:bg-brand-500 p-2 rounded-full transition-colors">
+                                    <i class="ph-fill ph-youtube-logo text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div class="lg:col-span-3 p-10 md:p-12">
+                        <form class="space-y-6"
+                            onsubmit="event.preventDefault(); alert('Formulário enviado com sucesso! Esta é uma demonstração.');">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="nome" class="block text-sm font-medium text-gray-700 mb-2">Nome
+                                        Completo</label>
+                                    <input type="text" id="nome"
+                                        class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                        placeholder="Seu nome" required>
+                                </div>
+                                <div>
+                                    <label for="empresa"
+                                        class="block text-sm font-medium text-gray-700 mb-2">Empresa</label>
+                                    <input type="text" id="empresa"
+                                        class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                        placeholder="Nome da empresa">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">E-mail
+                                        Corporativo</label>
+                                    <input type="email" id="email"
+                                        class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                        placeholder="seu@email.com.br" required>
+                                </div>
+                                <div>
+                                    <label for="telefone" class="block text-sm font-medium text-gray-700 mb-2">Telefone
+                                        / WhatsApp</label>
+                                    <input type="tel" id="telefone"
+                                        class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200 outline-none transition-all"
+                                        placeholder="(00) 00000-0000">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="assunto" class="block text-sm font-medium text-gray-700 mb-2">Assunto de
+                                    Interesse</label>
+                                <select id="assunto"
+                                    class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200 outline-none transition-all">
+                                    <option value="">Selecione um serviço</option>
+                                    <option value="consultoria">Consultoria Estratégica</option>
+                                    <option value="digital">Transformação Digital</option>
+                                    <option value="financas">Gestão Financeira</option>
+                                    <option value="outros">Outros assuntos</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="mensagem" class="block text-sm font-medium text-gray-700 mb-2">Sua
+                                    Mensagem</label>
+                                <textarea id="mensagem" rows="4"
+                                    class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-200 outline-none transition-all resize-none"
+                                    placeholder="Como podemos ajudar o seu negócio?" required></textarea>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-lg transition-colors shadow-lg shadow-brand-500/30 flex justify-center items-center gap-2">
+                                Enviar Solicitação
+                                <i class="ph-bold ph-paper-plane-tilt"></i>
+                            </button>
+                            <p class="text-xs text-gray-500 text-center mt-4">Ao enviar, você concorda com nossa
+                                Política de Privacidade.</p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-950 text-white pt-16 pb-8 border-t border-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                    <div class="flex items-center mb-4">
+                        <i class="ph-fill ph-buildings text-3xl text-brand-500 mr-2"></i>
+                        <span class="font-bold text-2xl tracking-tight text-white">Corpova.</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+                        Soluções corporativas integradas para empresas que buscam excelência, inovação e resultados
+                        escaláveis no mercado global.
+                    </p>
+                </div>
+
+                <!-- Links -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Empresa</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#sobre" class="hover:text-brand-500 transition-colors">Sobre Nós</a></li>
+                        <li><a href="#" class="hover:text-brand-500 transition-colors">Nossa Equipe</a></li>
+                        <li><a href="#" class="hover:text-brand-500 transition-colors">Carreiras</a></li>
+                        <li><a href="#" class="hover:text-brand-500 transition-colors">Blog Corporativo</a></li>
+                    </ul>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Soluções</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#servicos" class="hover:text-brand-500 transition-colors">Consultoria</a></li>
+                        <li><a href="#servicos" class="hover:text-brand-500 transition-colors">Transformação Digital</a>
+                        </li>
+                        <li><a href="#servicos" class="hover:text-brand-500 transition-colors">Segurança (LGPD)</a></li>
+                        <li><a href="#servicos" class="hover:text-brand-500 transition-colors">Gestão Financeira</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Termos de Serviço</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Política de Privacidade</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Cookies</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-sm">
+                    &copy; <span id="year"></span> Corpova Soluções Corporativas. Todos os direitos reservados.
+                </p>
+                <p class="text-gray-600 text-sm flex items-center gap-1">
+                    Desenvolvido com <i class="ph-fill ph-heart text-red-500"></i> para alta performance.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Set current year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            if (mobileMenu.classList.contains('hidden')) {
+                menuIcon.classList.remove('ph-x');
+                menuIcon.classList.add('ph-list');
+            } else {
+                menuIcon.classList.remove('ph-list');
+                menuIcon.classList.add('ph-x');
+            }
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+                menuIcon.classList.remove('ph-x');
+                menuIcon.classList.add('ph-list');
+            });
+        });
+
+        // Navbar Scroll Effect
+        const navbar = document.getElementById('navbar');
+        const logoText = document.querySelector('.logo-text');
+        const mobileIcon = document.getElementById('mobile-menu-btn');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('nav-scrolled');
+                navbar.classList.remove('nav-transparent', 'py-4');
+                navbar.classList.add('py-2');
+                mobileIcon.classList.remove('text-gray-300');
+                mobileIcon.classList.add('text-gray-800');
+            } else {
+                navbar.classList.remove('nav-scrolled', 'py-2');
+                navbar.classList.add('nav-transparent', 'py-4');
+                mobileIcon.classList.add('text-gray-300');
+                mobileIcon.classList.remove('text-gray-800');
+            }
+        });
+
+        // Scroll Reveal Animation (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const revealCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target); // Stop observing once revealed
+                }
+            });
+        };
+
+        const revealOptions = {
+            threshold: 0.15, // Trigger when 15% of element is visible
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
+
+        revealElements.forEach(el => {
+            revealObserver.observe(el);
+        });
+    </script>
+</body>
+
+</html>
