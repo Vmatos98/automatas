@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Code2,
   Workflow,
@@ -783,6 +784,11 @@ export default function Home() {
           <p className="text-slate-500 text-sm">
             © {new Date().getFullYear()} automatas.tech. Todos os direitos reservados. Transformando o futuro com tecnologia e automação.
           </p>
+          <div className="mt-3">
+            <Link href="/politica-de-privacidade" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+              Política de Privacidade
+            </Link>
+          </div>
         </div>
       </footer>
 
