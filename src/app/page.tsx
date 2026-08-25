@@ -35,7 +35,9 @@ import {
   Palette,
   ShoppingCart,
   LayoutTemplate,
-  ChevronDown
+  ChevronDown,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 
@@ -44,7 +46,17 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeN8nTab, setActiveN8nTab] = useState(0);
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
-  const [telefone, setTelefone] = useState('');
+  
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    telefone: '',
+    preferencia: 'WhatsApp',
+    servico: 'Desenvolvimento de Site',
+    motivo: ''
+  });
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let v = e.target.value.replace(/\D/g, '');
@@ -57,7 +69,55 @@ export default function Home() {
     else if (v.length <= 7) formatted = `(${v.substring(0, 2)}) ${v.substring(2, 3)} ${v.substring(3)}`;
     else formatted = `(${v.substring(0, 2)}) ${v.substring(2, 3)} ${v.substring(3, 7)}-${v.substring(7)}`;
 
-    setTelefone(formatted);
+    setFormData(prev => ({ ...prev, telefone: formatted }));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitStatus('loading');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/contato', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome: formData.nome,
+          email: formData.email,
+          telefone: formData.telefone,
+          preferencia: formData.preferencia,
+          servico: formData.servico,
+          motivo: formData.motivo,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || `Erro na resposta do servidor (${response.status})`);
+      }
+
+      setSubmitStatus('success');
+      setFormData({
+        nome: '',
+        email: '',
+        telefone: '',
+        preferencia: 'WhatsApp',
+        servico: 'Desenvolvimento de Site',
+        motivo: ''
+      });
+    } catch (err: any) {
+      console.error('Erro ao enviar lead:', err);
+      setSubmitStatus('error');
+      setErrorMessage(err.message || 'Não foi possível enviar sua solicitação no momento. Por favor, tente novamente ou fale conosco diretamente pelo WhatsApp.');
+    }
   };
 
   const n8nUseCases = [
@@ -731,44 +791,141 @@ export default function Home() {
             </div>
 
             <div className="md:w-1/2">
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Nome Completo *</label>
-                  <input required type="text" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="João Silva" />
+              {submitStatus === 'success' ? (
+                <div className="bg-slate-950/80 border border-green-500/30 rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[400px] animate-fadeIn">
+                  <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-400 mb-6">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">Mensagem Enviada!</h3>
+                  <p className="text-slate-300 text-sm mb-6 max-w-sm">
+                    Recebemos seu contato com sucesso. Em breve nossa equipe entrará em contato pelo canal de sua preferência.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSubmitStatus('idle')}
+                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Enviar outra mensagem
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">E-mail *</label>
-                  <input required type="email" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="joao@empresa.com" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Número para contato *</label>
-                  <input required type="text" value={telefone} onChange={handleTelefoneChange} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="(11) 9 9999-9999" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Preferência de contato</label>
-                  <select className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none">
-                    <option>E-mail</option>
-                    <option>WhatsApp</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Do que você precisa?</label>
-                  <select className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none">
-                    <option>Desenvolvimento de Site</option>
-                    <option>Sistema Tratto</option>
-                    <option>Automação com n8n</option>
-                    <option>Consultoria em Tecnologia</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Motivo do contato (Opcional)</label>
-                  <textarea rows={3} className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="Conte-nos um pouco sobre o que precisa..."></textarea>
-                  <p className="text-xs text-slate-500 mt-2">Isso é importante para identificarmos as tecnologias que já usa, o que precisa ser feito e o grau de urgência.</p>
-                </div>
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg transition-colors mt-2">
-                  Solicitar Contato
-                </button>
-              </form>
+              ) : (
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  {/* Honeypot field to block spam bots */}
+                  <input
+                    type="text"
+                    name="website_url"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    className="hidden"
+                    aria-hidden="true"
+                  />
+
+                  {submitStatus === 'error' && (
+                    <div className="p-4 bg-red-950/40 border border-red-500/30 rounded-lg flex items-start gap-3 text-red-300 text-sm">
+                      <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Nome Completo *</label>
+                    <input
+                      required
+                      type="text"
+                      name="nome"
+                      value={formData.nome}
+                      onChange={handleInputChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                      placeholder="João Silva"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">E-mail *</label>
+                    <input
+                      required
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                      placeholder="joao@empresa.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Número para contato *</label>
+                    <input
+                      required
+                      type="text"
+                      name="telefone"
+                      value={formData.telefone}
+                      onChange={handleTelefoneChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                      placeholder="(11) 9 9999-9999"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Preferência de contato</label>
+                    <select
+                      name="preferencia"
+                      value={formData.preferencia}
+                      onChange={handleInputChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="WhatsApp">WhatsApp</option>
+                      <option value="E-mail">E-mail</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Do que você precisa?</label>
+                    <select
+                      name="servico"
+                      value={formData.servico}
+                      onChange={handleInputChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="Desenvolvimento de Site">Desenvolvimento de Site</option>
+                      <option value="Sistema Tratto">Sistema Tratto</option>
+                      <option value="Sistema Move">Sistema Move</option>
+                      <option value="Automação">Automação</option>
+                      <option value="Consultoria em Tecnologia">Consultoria em Tecnologia</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Motivo do contato (Opcional)</label>
+                    <textarea
+                      rows={3}
+                      name="motivo"
+                      value={formData.motivo}
+                      onChange={handleInputChange}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                      placeholder="Conte-nos um pouco sobre o que precisa..."
+                    ></textarea>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Isso é importante para identificarmos as tecnologias que já usa, o que precisa ser feito e o grau de urgência.
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitStatus === 'loading'}
+                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-colors mt-2 flex items-center justify-center gap-2"
+                  >
+                    {submitStatus === 'loading' ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Enviando...</span>
+                      </>
+                    ) : (
+                      'Solicitar Contato'
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>
