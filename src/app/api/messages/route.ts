@@ -137,8 +137,23 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify(body),
         });
 
-        const data = await backendRes.json();
-        return NextResponse.json(data, { status: backendRes.status });
+        const resText = await backendRes.text();
+        let data: Record<string, unknown> = {};
+        try {
+          data = JSON.parse(resText);
+        } catch {
+          data = { error: 'Resposta inválida do backend', raw: resText };
+        }
+
+        if (
+          data.error === 'Authentication Error' ||
+          (typeof data.error === 'string' && data.error.includes('Authentication Error'))
+        ) {
+          data.error =
+            'Token de Acesso da Meta expirado ou inválido (Authentication Error - Código 190). Atualize o META_ACCESS_TOKEN no painel da Meta / backend.';
+        }
+
+        return NextResponse.json(data, { status: backendRes.ok ? 200 : 400 });
       } catch (err) {
         console.warn('[API /api/messages] Falha ao enviar via BACKEND_URL, tentando envio local:', err);
       }

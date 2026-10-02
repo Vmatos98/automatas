@@ -594,8 +594,14 @@ export default function AppPage() {
         }),
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: 'O servidor retornou uma resposta inesperada (Status ' + res.status + ').' };
+      }
+
+      if (res.ok && data.success) {
         setChatInputText('');
         setFeedbackMessage({
           text: `Mensagem enviada com sucesso para ${selectedContact?.name || selectedContactPhone}!`,
