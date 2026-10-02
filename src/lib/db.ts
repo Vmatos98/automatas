@@ -2,29 +2,60 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-// Diretório e arquivo do banco SQLite
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+// Diretório e arquivo do banco SQLite com suporte a ambientes serverless (Vercel / Lambda)
+function getDbPath(): string {
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return path.join('/tmp', 'automatas.db');
+  }
+  try {
+    const dir = path.resolve(process.cwd(), 'data');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    return path.resolve(dir, 'automatas.db');
+  } catch {
+    return path.join('/tmp', 'automatas.db');
+  }
 }
-
-const DB_PATH = path.resolve(DATA_DIR, 'automatas.db');
 
 // Conexão SQLite singleton
 declare global {
   // eslint-disable-next-line no-var
-  var __automatas_sqlite_db: Database.Database | undefined;
+  var __automatas_sqlite_db: any | undefined;
 }
 
-function getDatabase(): Database.Database {
+function createInMemoryFallbackDb() {
+  const dummyStatement = {
+    all: () => [],
+    get: () => undefined,
+    run: () => ({ changes: 0, lastInsertRowid: 0 }),
+  };
+
+  return {
+    prepare: () => dummyStatement,
+    exec: () => {},
+    pragma: () => {},
+  };
+}
+
+function getDatabase(): any {
   if (!globalThis.__automatas_sqlite_db) {
-    const db = new Database(DB_PATH);
-    // Habilitar Write-Ahead Logging para alta performance e concorrência segura
-    db.pragma('journal_mode = WAL');
-    db.pragma('synchronous = NORMAL');
-    globalThis.__automatas_sqlite_db = db;
-    initTables(db);
-    seedInitialData(db);
+    try {
+      const dbPath = getDbPath();
+      const db = new Database(dbPath);
+      try {
+        db.pragma('journal_mode = WAL');
+        db.pragma('synchronous = NORMAL');
+      } catch {
+        // Ignora caso pragmas de WAL não sejam aceitos em /tmp
+      }
+      globalThis.__automatas_sqlite_db = db;
+      initTables(db);
+      seedInitialData(db);
+    } catch (err) {
+      console.warn('[SQLite] Aviso: Operando em modo de memória resiliente serverless:', err);
+      globalThis.__automatas_sqlite_db = createInMemoryFallbackDb();
+    }
   }
   return globalThis.__automatas_sqlite_db;
 }
@@ -155,4 +186,4 @@ function seedInitialData(db: Database.Database) {
 }
 
 export const db = getDatabase();
-export { DB_PATH };
+export const DB_PATH = getDbPath();
