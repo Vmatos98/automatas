@@ -104,7 +104,7 @@ export function initFacebookSdk(appId: string): Promise<boolean> {
  * Executa o Login com Facebook solicitando permissões de WhatsApp e Perfil
  */
 export function loginWithFacebook(
-  scope: string = 'whatsapp_business_management,whatsapp_business_messaging,public_profile,email'
+  scope: string = 'whatsapp_business_management,whatsapp_business_messaging'
 ): Promise<FacebookLoginResult> {
   return new Promise((resolve) => {
     if (typeof window === 'undefined' || !window.FB) {
