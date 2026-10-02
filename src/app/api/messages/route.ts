@@ -13,7 +13,7 @@ export interface ContactItem {
 }
 
 const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
-const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || 'automatas_internal_secret_key_2026';
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || 'gcYQtZJb6nADOf5ob5QK9S0WgYUmSAq3HynjfWTlg8gQ0W9jqn';
 
 export async function GET() {
   const config = getMetaConfig();

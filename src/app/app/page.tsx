@@ -102,7 +102,7 @@ export default function AppPage() {
 
   // Estado da Conexão WhatsApp & Meta
   const [isConnected, setIsConnected] = useState<boolean>(true);
-  const [phoneId, setPhoneId] = useState<string>('1319012711295096');
+  const [phoneId, setPhoneId] = useState<string>('1275823778955658');
   const [wabaId, setWabaId] = useState<string>('');
   const [metaAppId, setMetaAppId] = useState<string>(process.env.NEXT_PUBLIC_META_APP_ID || '');
   const [metaConfigId, setMetaConfigId] = useState<string>(process.env.NEXT_PUBLIC_META_CONFIG_ID || '');
