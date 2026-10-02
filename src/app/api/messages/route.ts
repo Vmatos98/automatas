@@ -31,8 +31,8 @@ export async function GET() {
       if (backendRes.ok) {
         const backendData = await backendRes.json();
 
-        // Buscar contatos locais caso existam no banco para enriquecer a tela
-        let contacts: ContactItem[] = [];
+        // 1. Contatos cadastrados no banco
+        const contactsMap = new Map<string, ContactItem>();
         try {
           const users = db
             .prepare(
@@ -40,20 +40,66 @@ export async function GET() {
             )
             .all() as { id: string; name: string; phone: string; email?: string }[];
 
-          contacts = users.map((u) => ({
-            id: u.id,
-            name: u.name,
-            phone: u.phone,
-            email: u.email || undefined,
-            lastMessage: 'Contato cadastrado na plataforma',
-          }));
+          for (const u of users) {
+            const clean = u.phone.replace(/\D/g, '');
+            contactsMap.set(clean, {
+              id: u.id,
+              name: u.name,
+              phone: clean,
+              email: u.email || undefined,
+              lastMessage: 'Contato cadastrado na plataforma',
+            });
+          }
         } catch {
           // banco local opcional
         }
 
+        // 2. Extrair contatos dinamicamente das mensagens recebidas e enviadas
+        if (Array.isArray(backendData.messages)) {
+          for (const m of backendData.messages) {
+            const phone = m.direction === 'inbound' ? m.from : m.to;
+            if (!phone) continue;
+            const clean = phone.replace(/\D/g, '');
+            if (!clean || clean.length < 8) continue;
+
+            const existing = contactsMap.get(clean);
+            if (!existing) {
+              contactsMap.set(clean, {
+                id: `phone_${clean}`,
+                name: m.senderName || (m.direction === 'inbound' ? `WhatsApp +${clean}` : `Contato +${clean}`),
+                phone: clean,
+                lastMessage: m.text,
+                lastTimestamp: m.timestamp,
+              });
+            } else {
+              existing.lastMessage = m.text;
+              existing.lastTimestamp = m.timestamp;
+              if (m.senderName && !existing.name.includes(' ')) {
+                existing.name = m.senderName;
+              }
+            }
+          }
+        }
+
+        // 3. Incluir quaisquer contatos prévios do backend
+        if (Array.isArray(backendData.contacts)) {
+          for (const c of backendData.contacts) {
+            const clean = String(c.phone || '').replace(/\D/g, '');
+            if (clean && !contactsMap.has(clean)) {
+              contactsMap.set(clean, c);
+            }
+          }
+        }
+
+        const contacts = Array.from(contactsMap.values()).sort((a, b) => {
+          const timeA = a.lastTimestamp ? new Date(a.lastTimestamp).getTime() : 0;
+          const timeB = b.lastTimestamp ? new Date(b.lastTimestamp).getTime() : 0;
+          return timeB - timeA;
+        });
+
         return NextResponse.json({
           ...backendData,
-          contacts: contacts.length > 0 ? contacts : backendData.contacts || [],
+          contacts,
         });
       }
     } catch (err) {
