@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { dataRegistry } from '@/lib/dataRegistry';
 
 const PRODUCTION_WEBHOOK_URL = process.env.N8N_LEAD_WEBHOOK_URL || 'https://leads-service.automatas.tech/webhook/site-lead';
 
@@ -50,7 +51,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Número de contato inválido.' }, { status: 400 });
     }
 
-    // 4. Encaminhamento seguro Server-to-Server para o webhook de produção do n8n
+    // 4. Registrar no cadastro em memória para validação LGPD e expurgo posterior
+    try {
+      dataRegistry.registerUser({
+        name: nome.trim(),
+        email: email.trim(),
+        phone: telefone.trim(),
+        source: 'lead_form',
+      });
+    } catch (e) {
+      console.warn('Erro ao salvar lead no cadastro local:', e);
+    }
+
+    // 5. Encaminhamento seguro Server-to-Server para o webhook de produção do n8n
     const n8nPayload = {
       nome: nome.trim(),
       email: email.trim(),

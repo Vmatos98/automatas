@@ -37,7 +37,11 @@ import {
   LayoutTemplate,
   ChevronDown,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Truck,
+  Wrench,
+  ExternalLink,
+  Activity
 } from 'lucide-react';
 
 
@@ -507,81 +511,187 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Product Highlight: Tratto */}
+      {/* Product Highlight: Sistema M.O.V.E */}
       <section id="produtos" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-slate-950 z-0"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/40 via-slate-950 to-emerald-950/20 z-0"></div>
         <div className="container mx-auto px-6 md:px-12 relative z-10">
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-8 md:p-16 flex flex-col lg:flex-row items-center gap-12 shadow-2xl">
+          <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-8 md:p-14 flex flex-col lg:flex-row items-center gap-12 shadow-2xl">
 
             <div className="lg:w-1/2">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-900/30 border border-blue-800/50 text-blue-300 font-semibold mb-6">
-                Produto Exclusivo
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-900/40 border border-blue-700/50 text-blue-300 text-sm font-semibold mb-6">
+                <Truck className="w-4 h-4 text-blue-400" />
+                <span>SaaS para Locadoras de Equipamentos</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Tratto</h2>
-              <h3 className="text-xl text-blue-400 mb-6 font-medium">Gestão e Agendamento para Estética</h3>
-              <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-                Uma plataforma 100% online desenvolvida pela automatas.tech. Crie sua conta em minutos e revolucione a gestão do seu salão de beleza, barbearia, esmalteria ou clínica de estética.
+              
+              <h2 className="text-4xl md:text-5xl font-black mb-2 tracking-tight">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">M.O.V.E</span>
+              </h2>
+              <h3 className="text-xl text-slate-300 mb-6 font-semibold leading-snug">
+                Motor de Operação e Visão de Equipamentos
+              </h3>
+              
+              <p className="text-slate-300 text-base md:text-lg mb-8 leading-relaxed">
+                Sistema completo desenvolvido para locadoras de máquinas, ferramentas e frotas. Centralize seu pátio, contratos de locação, oficina mecânica com Kanban e faturamento com emissão de cobranças automáticas via Mercado Pago.
               </p>
 
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-3.5 mb-8">
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-green-400 shrink-0" />
-                  <span className="text-slate-200">Agendamento online 24/7 integrado com WhatsApp.</span>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-200 text-sm md:text-base">
+                    <strong>Controle de Frota &amp; PAT:</strong> Horímetro, alertas de manutenção preventiva a 90% e status em tempo real.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-green-400 shrink-0" />
-                  <span className="text-slate-200">Gerenciamento financeiro completo (caixa, comissões, despesas).</span>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-200 text-sm md:text-base">
+                    <strong>Oficina &amp; Kanban de O.S.:</strong> Triagem, reparo, controle de peças e devolução com vistoria fotográfica.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-green-400 shrink-0" />
-                  <span className="text-slate-200">Histórico de atendimento e prontuário de clientes.</span>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-200 text-sm md:text-base">
+                    <strong>Cobranças Mercado Pago:</strong> Emissão automatizada de Pix, Boleto e Cartão com conciliação financeira.
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-slate-200 text-sm md:text-base">
+                    <strong>Gestão de Obras &amp; Portal do Cliente:</strong> Obras como centros de custo e portal exclusivo para 2ª via.
+                  </span>
                 </li>
               </ul>
 
-              <button className="px-8 py-4 bg-white text-slate-900 hover:bg-slate-200 rounded-xl font-bold transition-colors">
-                Criar Conta no Tratto
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                <a
+                  href="https://sistemamove.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2 group text-center"
+                >
+                  <span>Conhecer o Sistema M.O.V.E</span>
+                  <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+                <button
+                  onClick={() => scrollToSection('contato')}
+                  className="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-semibold transition-colors text-center"
+                >
+                  Solicitar Demonstração
+                </button>
+              </div>
             </div>
 
             <div className="lg:w-1/2 w-full relative">
-              {/* Abstract Dashboard Representation */}
-              <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl p-6 relative z-10 aspect-video flex flex-col">
-                <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+              {/* High-fidelity Dashboard Representation */}
+              <div className="bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl p-5 relative z-10 flex flex-col gap-4">
+                {/* Header bar */}
+                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-rose-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span className="ml-2 text-xs font-semibold text-slate-400">M.O.V.E — Painel de Controle</span>
                   </div>
-                  <div className="text-slate-400 font-medium tracking-widest text-sm">TRATTO DASHBOARD</div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="text-[11px] font-medium text-emerald-400">Frota Ativa</span>
+                  </div>
                 </div>
-                <div className="flex gap-4 flex-1">
-                  <div className="w-1/3 flex flex-col gap-4">
-                    <div className="bg-slate-700/50 rounded-lg h-24 p-4 border border-slate-600/50">
-                      <div className="w-8 h-8 rounded-full bg-blue-500/20 mb-2"></div>
-                      <div className="h-2 w-16 bg-slate-500 rounded mb-2"></div>
-                      <div className="h-4 w-24 bg-slate-400 rounded"></div>
+
+                {/* KPI Cards Grid */}
+                <div className="grid grid-cols-4 gap-2.5">
+                  <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Frota</p>
+                    <p className="text-lg font-black text-white mt-0.5">245</p>
+                  </div>
+                  <div className="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-800/40">
+                    <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Disponível</p>
+                    <p className="text-lg font-black text-emerald-300 mt-0.5">82</p>
+                  </div>
+                  <div className="bg-blue-950/40 p-2.5 rounded-xl border border-blue-800/40">
+                    <p className="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Locados</p>
+                    <p className="text-lg font-black text-blue-300 mt-0.5">148</p>
+                  </div>
+                  <div className="bg-amber-950/40 p-2.5 rounded-xl border border-amber-800/40">
+                    <p className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">Oficina / O.S.</p>
+                    <p className="text-lg font-black text-amber-300 mt-0.5">7</p>
+                  </div>
+                </div>
+
+                {/* Dashboard Chart & Modules */}
+                <div className="grid grid-cols-5 gap-3">
+                  {/* Occupancy Chart */}
+                  <div className="col-span-3 bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60 flex flex-col justify-between h-40">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] font-bold text-slate-300">Taxa de Ocupação da Frota</span>
+                      <span className="text-[10px] font-extrabold text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded-full border border-blue-800/50">86% Pico</span>
                     </div>
-                    <div className="bg-slate-700/50 rounded-lg h-24 p-4 border border-slate-600/50">
-                      <div className="w-8 h-8 rounded-full bg-green-500/20 mb-2"></div>
-                      <div className="h-2 w-16 bg-slate-500 rounded mb-2"></div>
-                      <div className="h-4 w-24 bg-slate-400 rounded"></div>
+                    <div className="flex items-end gap-2 h-20 pt-2">
+                      <div className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full rounded-t bg-blue-500/30" style={{ height: '62%' }}></div>
+                        <span className="text-[8px] text-slate-400">Seg</span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full rounded-t bg-blue-500/40" style={{ height: '70%' }}></div>
+                        <span className="text-[8px] text-slate-400">Ter</span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full rounded-t bg-blue-500/60" style={{ height: '78%' }}></div>
+                        <span className="text-[8px] text-slate-400">Qua</span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full rounded-t bg-blue-500/80" style={{ height: '86%' }}></div>
+                        <span className="text-[8px] text-slate-400">Qui</span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full rounded-t bg-emerald-400" style={{ height: '92%' }}></div>
+                        <span className="text-[8px] text-slate-400">Hoje</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="w-2/3 bg-slate-700/30 border border-slate-600/50 rounded-lg p-4 flex flex-col">
-                    <div className="h-4 w-32 bg-slate-500 rounded mb-6"></div>
-                    <div className="flex-1 flex items-end gap-2">
-                      <div className="w-full bg-blue-500/40 rounded-t-md h-1/3"></div>
-                      <div className="w-full bg-blue-500/60 rounded-t-md h-2/3"></div>
-                      <div className="w-full bg-blue-500/80 rounded-t-md h-1/2"></div>
-                      <div className="w-full bg-blue-500 rounded-t-md h-full"></div>
-                      <div className="w-full bg-blue-500/90 rounded-t-md h-4/5"></div>
+
+                  {/* Operational Feed & Mercado Pago */}
+                  <div className="col-span-2 flex flex-col gap-2">
+                    <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60 flex-1 flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-slate-300">Oficina &amp; Manutenção</span>
+                      <div className="space-y-1.5 mt-1">
+                        <div className="flex items-center justify-between text-[10px] bg-slate-900/70 px-2 py-1 rounded border border-slate-700/50">
+                          <span className="text-slate-300 truncate">PAT-1048 Escavadeira</span>
+                          <span className="text-amber-400 text-[9px] font-bold">Reparo</span>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] bg-slate-900/70 px-2 py-1 rounded border border-slate-700/50">
+                          <span className="text-slate-300 truncate">PAT-2031 Gerador</span>
+                          <span className="text-emerald-400 text-[9px] font-bold">Pronto</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-950/40 border border-blue-800/40 p-2 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-blue-400" />
+                        <span className="text-[10px] font-bold text-blue-300">Mercado Pago</span>
+                      </div>
+                      <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-700/40">Pix/Boleto</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Footer preview tag */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
+                  <span>Domínio oficial: <strong className="text-slate-200">sistemamove.com</strong></span>
+                  <a
+                    href="https://sistemamove.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 font-semibold inline-flex items-center gap-1"
+                  >
+                    Ver ao vivo <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               </div>
+
               {/* Decorative elements behind dashboard */}
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-blue-500 rounded-full blur-[60px] opacity-40"></div>
-              <div className="absolute -top-6 -left-6 w-32 h-32 bg-purple-500 rounded-full blur-[60px] opacity-30"></div>
+              <div className="absolute -bottom-6 -right-6 w-36 h-36 bg-blue-500 rounded-full blur-[70px] opacity-30"></div>
+              <div className="absolute -top-6 -left-6 w-36 h-36 bg-emerald-500 rounded-full blur-[70px] opacity-25"></div>
             </div>
 
           </div>
@@ -776,7 +886,7 @@ export default function Home() {
             <div className="md:w-1/2">
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Pronto para inovar?</h2>
               <p className="text-lg text-slate-400 mb-8">
-                Seja para desenvolver o novo site da sua empresa, usar a plataforma Tratto ou automatizar seus processos com n8n, a automatas.tech está pronta para ser sua parceira tecnológica.
+                Seja para desenvolver o novo site da sua empresa, implantar o Sistema M.O.V.E ou automatizar seus processos com n8n, a automatas.tech está pronta para ser sua parceira tecnológica.
               </p>
               <div className="space-y-4">
                 <div className="flex items-center gap-4 text-slate-300">
@@ -888,9 +998,8 @@ export default function Home() {
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors appearance-none cursor-pointer"
                     >
                       <option value="Desenvolvimento de Site">Desenvolvimento de Site</option>
-                      <option value="Sistema Tratto">Sistema Tratto</option>
-                      <option value="Sistema Move">Sistema Move</option>
-                      <option value="Automação">Automação</option>
+                      <option value="Sistema M.O.V.E">Sistema M.O.V.E (Locação de Equipamentos)</option>
+                      <option value="Automação">Automação de Processos / n8n</option>
                       <option value="Consultoria em Tecnologia">Consultoria em Tecnologia</option>
                     </select>
                   </div>
@@ -941,9 +1050,21 @@ export default function Home() {
           <p className="text-slate-500 text-sm">
             © {new Date().getFullYear()} automatas.tech. Todos os direitos reservados. Transformando o futuro com tecnologia e automação.
           </p>
-          <div className="mt-3">
-            <Link href="/politica-de-privacidade" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+          <div className="mt-4 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm text-slate-400">
+            <Link href="/privacidade" className="hover:text-blue-400 transition-colors">
               Política de Privacidade
+            </Link>
+            <span className="text-slate-700 hidden sm:inline">•</span>
+            <Link href="/termos" className="hover:text-blue-400 transition-colors">
+              Termos de Serviço
+            </Link>
+            <span className="text-slate-700 hidden sm:inline">•</span>
+            <Link href="/exclusao-dados" className="hover:text-blue-400 transition-colors">
+              Exclusão de Dados
+            </Link>
+            <span className="text-slate-700 hidden sm:inline">•</span>
+            <Link href="/app" className="text-blue-400 hover:text-blue-300 transition-colors font-medium">
+              Painel do Cliente
             </Link>
           </div>
         </div>

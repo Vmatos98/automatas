@@ -42,3 +42,13 @@ next-env.d.ts
 
 /exemplos
 /exemplos/*
+
+# SQLite local database
+/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Remotion video project and renders
+/video/
