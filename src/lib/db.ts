@@ -121,68 +121,10 @@ function initTables(db: Database.Database) {
 }
 
 /**
- * Semeia dados iniciais para homologação e testes de auditoria
+ * Semeia dados iniciais para homologação se necessário
  */
-function seedInitialData(db: Database.Database) {
-  const userCount = db.prepare('SELECT COUNT(*) as count FROM registered_users').get() as { count: number };
-  if (userCount.count === 0) {
-    const insertUser = db.prepare(`
-      INSERT INTO registered_users (id, name, phone, email, source, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    insertUser.run(
-      'reg_demo_1',
-      'Cliente Demonstração',
-      '5511999998888',
-      'cliente.demo@automatas.tech',
-      'whatsapp_bot',
-      'active',
-      new Date().toISOString(),
-      new Date().toISOString()
-    );
-
-    insertUser.run(
-      'reg_demo_2',
-      'Auditor Meta / Desenvolvedor',
-      '5511988887777',
-      'auditoria@meta.com',
-      'meta_app',
-      'active',
-      new Date().toISOString(),
-      new Date().toISOString()
-    );
-  }
-
-  const msgCount = db.prepare('SELECT COUNT(*) as count FROM whatsapp_messages').get() as { count: number };
-  if (msgCount.count === 0) {
-    const insertMsg = db.prepare(`
-      INSERT INTO whatsapp_messages (id, from_phone, to_phone, direction, text, status, sender_name, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    insertMsg.run(
-      'demo-msg-1',
-      '5511999998888',
-      'automatas.tech Bot',
-      'inbound',
-      'Olá, gostaria de saber como funciona a automação de WhatsApp da automatas.tech!',
-      'read',
-      'Cliente Demonstração',
-      new Date(Date.now() - 1000 * 60 * 20).toISOString()
-    );
-
-    insertMsg.run(
-      'demo-msg-2',
-      'automatas.tech Bot',
-      '5511999998888',
-      'outbound',
-      'Olá! Bem-vindo à automatas.tech. Nossa plataforma conecta sistemas inteligentes e IA ao seu WhatsApp empresarial.',
-      'delivered',
-      null,
-      new Date(Date.now() - 1000 * 60 * 19).toISOString()
-    );
-  }
+function seedInitialData(_db: Database.Database) {
+  // Inicialização limpa em produção sem dados mockados
 }
 
 export const db = getDatabase();

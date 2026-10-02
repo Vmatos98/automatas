@@ -1080,20 +1080,7 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* Webhook Notice Banner */}
-        <div className="p-3.5 rounded-2xl bg-blue-950/20 border border-blue-900/30 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5 text-slate-300">
-            <Shield className="w-4 h-4 text-blue-400 shrink-0" />
-            <span>
-              <strong className="text-blue-300">Sobre mensagens recebidas do seu celular:</strong> A Meta entrega mensagens externas via Webhook HTTPS público. Em ambiente local, você pode testar respostas instantâneas usando o botão <em>&quot;⚡ Simular Recebimento&quot;</em> dentro da conversa!
-            </span>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Link href="/exclusao-dados" className="text-slate-400 hover:text-white underline">
-              Exclusão LGPD
-            </Link>
-          </div>
-        </div>
+
 
         {/* RENDERIZAÇÃO CONDICIONAL: GERENCIAMENTO DE CONTAS OU CHAT */}
         {currentView === 'users' && isAdmin ? (
@@ -1552,16 +1539,6 @@ export default function AppPage() {
 
               {/* Botões de Ação do Chat */}
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSimulateInboundFromContact('Olá! Como funciona a automação?')}
-                  disabled={isSending}
-                  className="px-3 py-1.5 rounded-lg bg-blue-950/40 hover:bg-blue-900/50 text-blue-300 border border-blue-800/40 text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                  title="Simula o cliente enviando uma mensagem para o número da Meta e acionando o bot"
-                >
-                  <Sparkles className="w-3 h-3 text-blue-400" />
-                  <span className="hidden sm:inline">Simular Recebimento (&quot;Oi&quot;)</span>
-                </button>
                 <button
                   type="button"
                   onClick={fetchMessagesAndContacts}
