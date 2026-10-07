@@ -368,60 +368,96 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Portfolio Item 1 */}
-            <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
-              <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                <img src="/assets/AlthairSanto.png" alt="Althair Santo" className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110" />
+            <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                  <img src="/assets/AlthairSanto.png" alt="Althair Santo" className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110" />
+                </div>
+                <div className="p-8">
+                  <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">MODA & ESTILO</div>
+                  <h3 className="text-2xl font-bold mb-3">Althair Santo</h3>
+                  <p className="text-slate-400 mb-6">Site institucional e portfólio digital desenvolvido para o renomado estilista, destacando coleções e identidade visual elegante.</p>
+                </div>
               </div>
-              <div className="p-8">
-                <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">MODA & ESTILO</div>
-                <h3 className="text-2xl font-bold mb-3">Althair Santo</h3>
-                <p className="text-slate-400 mb-6">Site institucional e portfólio digital desenvolvido para o renomado estilista, destacando coleções e identidade visual elegante.</p>
-                <a href="https://www.althairsanto.com.br" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
+              <div className="px-8 pb-8 pt-0">
+                <a href="https://www.althairsanto.com.br" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
               </div>
             </div>
 
             {/* Portfolio Item 2 */}
-            <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
-              <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                <img src="/assets/Nardelli.png" alt="Nardelli Usinagem" className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110 z-0" />
-                {/* <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900 relative z-10"></div>
-                <Database className="w-20 h-20 text-slate-600 relative z-20 group-hover:scale-110 transition-transform duration-500" /> */}
+            <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                  <img src="/assets/Nardelli.png" alt="Nardelli Usinagem" className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110 z-0" />
+                </div>
+                <div className="p-8">
+                  <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">INDÚSTRIA</div>
+                  <h3 className="text-2xl font-bold mb-3">Nardelli Usinagem</h3>
+                  <p className="text-slate-400 mb-6">Plataforma B2B para apresentação de serviços de usinagem de precisão, maquinário e formulário de orçamento complexo.</p>
+                </div>
               </div>
-              <div className="p-8">
-                <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">INDÚSTRIA</div>
-                <h3 className="text-2xl font-bold mb-3">Nardelli Usinagem</h3>
-                <p className="text-slate-400 mb-6">Plataforma B2B para apresentação de serviços de usinagem de precisão, maquinário e formulário de orçamento complexo.</p>
-                <a href="https://www.nardelliusinagem.com.br" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
+              <div className="px-8 pb-8 pt-0">
+                <a href="https://www.nardelliusinagem.com.br" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
               </div>
             </div>
 
             {/* Portfolio Item 3 */}
-            <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
-              <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                {/* <img src="/portfolio/onca.jpg" alt="Onça Filmes" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 z-0" /> */}
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900 relative z-10"></div>
-                <Monitor className="w-20 h-20 text-slate-600 relative z-20 group-hover:scale-110 transition-transform duration-500" />
+            <div className="group rounded-2xl bg-slate-950 border border-slate-800/80 hover:border-amber-500/40 overflow-hidden transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="h-64 bg-gradient-to-br from-slate-900 via-slate-900/90 to-amber-950/20 relative overflow-hidden flex flex-col items-center justify-center border-b border-slate-800/50">
+                  <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-500/30 text-amber-400 text-xs font-medium shadow-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    Em Desenvolvimento
+                  </div>
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent opacity-60"></div>
+                  <div className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-amber-400/80 group-hover:scale-110 group-hover:text-amber-400 transition-all duration-300 shadow-lg">
+                    <Monitor className="w-8 h-8" />
+                  </div>
+                  <span className="mt-3 text-xs text-slate-400 font-mono tracking-wider uppercase">Lançamento em breve</span>
+                </div>
+                <div className="p-8">
+                  <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">AUDIOVISUAL</div>
+                  <h3 className="text-2xl font-bold mb-3">Onça Filmes</h3>
+                  <p className="text-slate-400 mb-6">Site imersivo e dinâmico focado em exibir o showreel e produções da produtora, com alta performance em carregamento de vídeos.</p>
+                </div>
               </div>
-              <div className="p-8">
-                <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">AUDIOVISUAL</div>
-                <h3 className="text-2xl font-bold mb-3">Onça Filmes</h3>
-                <p className="text-slate-400 mb-6">Site imersivo e dinâmico focado em exibir o showreel e produções da produtora, com alta performance em carregamento de vídeos.</p>
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
+              <div className="px-8 pb-8 pt-0">
+                <button 
+                  onClick={() => scrollToSection('contato')}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-amber-400 hover:text-amber-300 transition-colors group/btn"
+                >
+                  Solicitar projeto similar <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                </button>
               </div>
             </div>
 
             {/* Portfolio Item 4 */}
-            <div className="group rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden hover:border-blue-500/50 transition-all duration-300">
-              <div className="h-64 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                {/* <img src="/portfolio/advocacia.jpg" alt="Escritório de Advocacia" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 z-0" /> */}
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-400 via-slate-800 to-slate-900 relative z-10"></div>
-                <Briefcase className="w-20 h-20 text-slate-600 relative z-20 group-hover:scale-110 transition-transform duration-500" />
+            <div className="group rounded-2xl bg-slate-950 border border-slate-800/80 hover:border-blue-500/40 overflow-hidden transition-all duration-300 flex flex-col justify-between">
+              <div>
+                <div className="h-64 bg-gradient-to-br from-slate-900 via-slate-900/90 to-blue-950/20 relative overflow-hidden flex flex-col items-center justify-center border-b border-slate-800/50">
+                  <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-blue-500/30 text-blue-400 text-xs font-medium shadow-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                    Em Desenvolvimento
+                  </div>
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent opacity-60"></div>
+                  <div className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-blue-400/80 group-hover:scale-110 group-hover:text-blue-400 transition-all duration-300 shadow-lg">
+                    <Briefcase className="w-8 h-8" />
+                  </div>
+                  <span className="mt-3 text-xs text-slate-400 font-mono tracking-wider uppercase">Lançamento em breve</span>
+                </div>
+                <div className="p-8">
+                  <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">JURÍDICO</div>
+                  <h3 className="text-2xl font-bold mb-3">Escritório de Advocacia</h3>
+                  <p className="text-slate-400 mb-6">Presença digital séria e confiável, apresentando áreas de atuação da banca, artigos jurídicos e integração com WhatsApp.</p>
+                </div>
               </div>
-              <div className="p-8">
-                <div className="text-blue-400 text-sm font-semibold mb-2 tracking-wider">JURÍDICO</div>
-                <h3 className="text-2xl font-bold mb-3">Escritório de Advocacia</h3>
-                <p className="text-slate-400 mb-6">Presença digital séria e confiável, apresentando áreas de atuação da banca, artigos jurídicos e integração com WhatsApp.</p>
-                <a href="#" className="inline-flex items-center gap-2 text-sm font-medium hover:text-blue-400 transition-colors">Visitar projeto <ArrowRight className="w-4 h-4" /></a>
+              <div className="px-8 pb-8 pt-0">
+                <button 
+                  onClick={() => scrollToSection('contato')}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors group/btn"
+                >
+                  Solicitar projeto similar <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                </button>
               </div>
             </div>
           </div>
