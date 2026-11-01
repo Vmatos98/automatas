@@ -102,6 +102,7 @@ export default function AppPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
   // Modo de Auditoria Meta (Ambiente Sandbox Seguro Isolado)
   const [isAuditorMode, setIsAuditorMode] = useState<boolean>(false);
@@ -185,10 +186,24 @@ export default function AppPage() {
     const savedRole = localStorage.getItem('automatas_app_role') as 'admin' | 'user' | null;
     const savedEmail = localStorage.getItem('automatas_app_email');
     const savedAuditor = localStorage.getItem('automatas_app_auditor_mode');
+
+    // Valida se a sessão salva pertence a uma conta oficial autorizada
+    const validEmails = ['reviewer@automatas.tech', 'admin@automatas.tech', 'contato@automatas.tech'];
+    const isFacebookSession = savedEmail && (savedEmail.includes('@facebook.user') || savedEmail.includes('facebook'));
+
     if (savedAuth === 'true') {
-      setIsAuthenticated(true);
-      if (savedRole) setUserRole(savedRole);
-      if (savedEmail) setEmail(savedEmail);
+      if (savedEmail && (validEmails.includes(savedEmail.toLowerCase()) || isFacebookSession)) {
+        setIsAuthenticated(true);
+        if (savedRole) setUserRole(savedRole);
+        if (savedEmail) setEmail(savedEmail);
+      } else {
+        // Limpa sessões legadas não autorizadas
+        localStorage.removeItem('automatas_app_auth');
+        localStorage.removeItem('automatas_app_role');
+        localStorage.removeItem('automatas_app_email');
+        localStorage.removeItem('automatas_app_auditor_mode');
+        setIsAuthenticated(false);
+      }
     }
     if (
       savedAuditor === 'true' ||
@@ -470,39 +485,47 @@ export default function AppPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, selectedContactPhone]);
 
-  // Login handler
-  const handleLogin = (e: React.FormEvent) => {
+  // Login handler com validação segura de credenciais no servidor
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError('');
     if (!email || !password) {
       setLoginError('Preencha o e-mail e a senha para acessar.');
       return;
     }
 
-    if (email.trim().length > 3 && password.trim().length >= 4) {
+    setIsLoggingIn(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setLoginError(data.error || 'Credenciais inválidas. Verifique seu e-mail e senha.');
+        return;
+      }
+
+      // Autenticação autorizada com sucesso pelo servidor
       setIsAuthenticated(true);
-      const isAdm =
-        email.toLowerCase().includes('admin') ||
-        email.toLowerCase().includes('meta') ||
-        email.toLowerCase().includes('automatas') ||
-        email.toLowerCase().includes('review');
-      const role: 'admin' | 'user' = isAdm ? 'admin' : 'user';
+      const role: 'admin' | 'user' = data.user.role || 'admin';
+      const isAuditor = Boolean(data.user.isAuditorMode);
+
       setUserRole(role);
-
-      // Ativa isolamento Sandbox caso o login seja da equipe de revisão da Meta
-      const isAuditor =
-        email.toLowerCase().includes('review') ||
-        email.toLowerCase().includes('meta') ||
-        email.toLowerCase().includes('teste') ||
-        email.toLowerCase().includes('auditor');
-
       setIsAuditorMode(isAuditor);
-      localStorage.setItem('automatas_app_auditor_mode', isAuditor ? 'true' : 'false');
+
       localStorage.setItem('automatas_app_auth', 'true');
       localStorage.setItem('automatas_app_role', role);
-      localStorage.setItem('automatas_app_email', email);
+      localStorage.setItem('automatas_app_email', data.user.email);
+      localStorage.setItem('automatas_app_auditor_mode', isAuditor ? 'true' : 'false');
       setLoginError('');
-    } else {
-      setLoginError('Credenciais inválidas. Use a senha de demonstração.');
+    } catch {
+      setLoginError('Falha ao conectar com o servidor de autenticação.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -867,9 +890,10 @@ export default function AppPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 mt-2 cursor-pointer"
+                disabled={isLoggingIn}
+                className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <span>Entrar no Painel</span>
+                <span>{isLoggingIn ? 'Autenticando no Servidor...' : 'Entrar no Painel'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
