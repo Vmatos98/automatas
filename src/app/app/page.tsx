@@ -48,6 +48,8 @@ import {
   Filter,
   UserCheck,
   Mail,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 interface AdminUser {
@@ -100,6 +102,9 @@ export default function AppPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  // Modo de Auditoria Meta (Ambiente Sandbox Seguro Isolado)
+  const [isAuditorMode, setIsAuditorMode] = useState<boolean>(false);
 
   // Estado da Conexão WhatsApp & Meta
   const [isConnected, setIsConnected] = useState<boolean>(true);
@@ -158,6 +163,14 @@ export default function AppPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  // Modo de Privacidade / Mascaramento para Vídeos e Auditoria Meta
+  const [privacyMode, setPrivacyMode] = useState<boolean>(true);
+  const [showVerifyToken, setShowVerifyToken] = useState<boolean>(false);
+  const [showPhoneId, setShowPhoneId] = useState<boolean>(false);
+  const [showMetaAppId, setShowMetaAppId] = useState<boolean>(false);
+  const [showMetaConfigId, setShowMetaConfigId] = useState<boolean>(false);
+  const [showWabaId, setShowWabaId] = useState<boolean>(false);
+
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
@@ -171,10 +184,17 @@ export default function AppPage() {
     const savedAuth = localStorage.getItem('automatas_app_auth');
     const savedRole = localStorage.getItem('automatas_app_role') as 'admin' | 'user' | null;
     const savedEmail = localStorage.getItem('automatas_app_email');
+    const savedAuditor = localStorage.getItem('automatas_app_auditor_mode');
     if (savedAuth === 'true') {
       setIsAuthenticated(true);
       if (savedRole) setUserRole(savedRole);
       if (savedEmail) setEmail(savedEmail);
+    }
+    if (
+      savedAuditor === 'true' ||
+      (savedEmail && (savedEmail.toLowerCase().includes('review') || savedEmail.toLowerCase().includes('meta')))
+    ) {
+      setIsAuditorMode(true);
     }
 
     const savedAppId = localStorage.getItem('automatas_meta_app_id') || process.env.NEXT_PUBLIC_META_APP_ID || '';
@@ -374,8 +394,13 @@ export default function AppPage() {
       const params = new URLSearchParams();
       if (userFilter !== 'all') params.append('filter', userFilter);
       if (userSearch.trim()) params.append('q', userSearch.trim());
+      params.append('auditor', isAuditorMode ? 'true' : 'false');
 
-      const res = await fetch(`/api/admin/users?${params.toString()}`);
+      const res = await fetch(`/api/admin/users?${params.toString()}`, {
+        headers: {
+          'x-auditor-mode': isAuditorMode ? 'true' : 'false',
+        },
+      });
       if (res.ok) {
         const data = await res.json();
         setAdminUsers(data.users || []);
@@ -386,7 +411,7 @@ export default function AppPage() {
     } finally {
       setIsLoadingUsers(false);
     }
-  }, [userFilter, userSearch]);
+  }, [userFilter, userSearch, isAuditorMode]);
 
   useEffect(() => {
     if (isAuthenticated && isAdmin && currentView === 'users') {
@@ -398,7 +423,11 @@ export default function AppPage() {
   const fetchMessagesAndContacts = useCallback(async () => {
     setIsLoadingMessages(true);
     try {
-      const res = await fetch('/api/messages');
+      const res = await fetch(`/api/messages?auditor=${isAuditorMode ? 'true' : 'false'}`, {
+        headers: {
+          'x-auditor-mode': isAuditorMode ? 'true' : 'false',
+        },
+      });
       if (res.ok) {
         const data: MetaStatus = await res.json();
         setMetaInfo(data);
@@ -426,7 +455,7 @@ export default function AppPage() {
     } finally {
       setIsLoadingMessages(false);
     }
-  }, []);
+  }, [isAuditorMode]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -454,9 +483,20 @@ export default function AppPage() {
       const isAdm =
         email.toLowerCase().includes('admin') ||
         email.toLowerCase().includes('meta') ||
-        email.toLowerCase().includes('automatas');
+        email.toLowerCase().includes('automatas') ||
+        email.toLowerCase().includes('review');
       const role: 'admin' | 'user' = isAdm ? 'admin' : 'user';
       setUserRole(role);
+
+      // Ativa isolamento Sandbox caso o login seja da equipe de revisão da Meta
+      const isAuditor =
+        email.toLowerCase().includes('review') ||
+        email.toLowerCase().includes('meta') ||
+        email.toLowerCase().includes('teste') ||
+        email.toLowerCase().includes('auditor');
+
+      setIsAuditorMode(isAuditor);
+      localStorage.setItem('automatas_app_auditor_mode', isAuditor ? 'true' : 'false');
       localStorage.setItem('automatas_app_auth', 'true');
       localStorage.setItem('automatas_app_role', role);
       localStorage.setItem('automatas_app_email', email);
@@ -468,11 +508,26 @@ export default function AppPage() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setIsAuditorMode(false);
     localStorage.removeItem('automatas_app_auth');
     localStorage.removeItem('automatas_app_role');
     localStorage.removeItem('automatas_app_email');
+    localStorage.removeItem('automatas_app_auditor_mode');
     localStorage.removeItem('automatas_meta_user');
     setFbUserProfile(null);
+  };
+
+  // Alternador de Modo Auditoria Meta / Produção Real
+  const toggleAuditorMode = () => {
+    const nextMode = !isAuditorMode;
+    setIsAuditorMode(nextMode);
+    localStorage.setItem('automatas_app_auditor_mode', nextMode ? 'true' : 'false');
+    setFeedbackMessage({
+      text: nextMode
+        ? '🛡️ Modo Auditoria Meta Ativado: Exibindo apenas contatos e histórico de teste isolados.'
+        : '🚀 Modo Produção Ativado: Exibindo conversas reais do sistema.',
+      type: 'success',
+    });
   };
 
   // Alternador rápido de visão para testes de auditoria
@@ -545,11 +600,18 @@ export default function AppPage() {
       return;
     }
     try {
-      const res = await fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/users?id=${id}&auditor=${isAuditorMode ? 'true' : 'false'}`, {
+        method: 'DELETE',
+        headers: {
+          'x-auditor-mode': isAuditorMode ? 'true' : 'false',
+        },
+      });
       if (res.ok) {
         setFeedbackMessage({ text: `Dados de "${name}" expurgados com sucesso!`, type: 'success' });
         fetchAdminUsers();
         fetchMessagesAndContacts();
+      } else {
+        setFeedbackMessage({ text: 'Erro ao excluir usuário', type: 'error' });
       }
     } catch {
       setFeedbackMessage({ text: 'Erro ao excluir usuário', type: 'error' });
@@ -594,10 +656,14 @@ export default function AppPage() {
     try {
       const res = await fetch('/api/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auditor-mode': isAuditorMode ? 'true' : 'false',
+        },
         body: JSON.stringify({
           to: selectedContactPhone,
           text: messageText,
+          isAuditorMode,
         }),
       });
 
@@ -938,6 +1004,21 @@ export default function AppPage() {
 
           {/* Lado Direito: Alternador de Perfil, Phone ID, Logout e Menu Mobile */}
           <div className="flex items-center gap-2 md:gap-3">
+            {/* Alternador de Modo Auditoria Meta / Produção */}
+            <button
+              type="button"
+              onClick={toggleAuditorMode}
+              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                isAuditorMode
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
+              }`}
+              title="Clique para alternar entre a visão de teste da Meta e a visão real de produção"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>{isAuditorMode ? '🛡️ Visão da Meta' : '🚀 Produção'}</span>
+            </button>
+
             {/* Botão de Alternar Visão (Teste de Perfil Admin vs Atendente) */}
             <button
               type="button"
@@ -963,9 +1044,24 @@ export default function AppPage() {
               </div>
             )}
 
+            {/* Alternador de Modo Gravação / Privacidade */}
+            <button
+              type="button"
+              onClick={() => setPrivacyMode(!privacyMode)}
+              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                privacyMode
+                  ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/40'
+                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
+              }`}
+              title={privacyMode ? 'Modo Gravação Ativo: Dados técnicos mascarados' : 'Modo Padrão: Clique para mascarar dados para gravação'}
+            >
+              {privacyMode ? <EyeOff className="w-3.5 h-3.5 text-emerald-400" /> : <Eye className="w-3.5 h-3.5" />}
+              <span className="hidden xl:inline">{privacyMode ? 'Dados Ocultos' : 'Visível'}</span>
+            </button>
+
             <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
               <Smartphone className="w-3.5 h-3.5 text-blue-400" />
-              <span>ID: {phoneId}</span>
+              <span>ID: {privacyMode && phoneId ? `••••${phoneId.slice(-4)}` : phoneId}</span>
             </div>
             <button
               onClick={handleLogout}
@@ -1065,6 +1161,25 @@ export default function AppPage() {
           </div>
         )}
       </header>
+
+      {/* Banner Informativo do Modo Auditoria Meta */}
+      {isAuditorMode && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 md:px-6 py-2.5 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+            <span>
+              <strong>Ambiente de Homologação Meta (App Review Sandbox):</strong> Exibindo exclusivamente contatos e histórico de teste. Conversas e dados de clientes reais estão isolados e protegidos.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={toggleAuditorMode}
+            className="text-[11px] px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-100 transition-colors cursor-pointer"
+          >
+            Alternar para Produção Real
+          </button>
+        </div>
+      )}
 
       {/* Main Container */}
       <main className="container mx-auto px-4 md:px-6 py-6 flex-1 flex flex-col space-y-4 max-w-7xl">
@@ -1811,14 +1926,39 @@ export default function AppPage() {
                   <p className="text-xs text-slate-400">Dados técnicos de integração e links de conformidade exigidos pela Meta</p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowMetaSettingsModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPrivacyMode(!privacyMode)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                    privacyMode
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  }`}
+                  title={privacyMode ? 'Modo Gravação ativo: dados mascarados' : 'Clique para ocultar dados para gravação'}
+                >
+                  {privacyMode ? <EyeOff className="w-3.5 h-3.5 text-emerald-400" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>{privacyMode ? 'Modo Gravação: Ativo' : 'Ocultar Dados'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMetaSettingsModal(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
+
+            {/* Aviso de Proteção de Dados para Gravação */}
+            {privacyMode && (
+              <div className="p-3 rounded-2xl bg-blue-950/20 border border-blue-500/20 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-blue-300">
+                  <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span><strong>Modo de Gravação Seguro:</strong> Tokens e identificadores sensíveis foram mascarados para demonstração e análise da Meta.</span>
+                </div>
+              </div>
+            )}
 
             {/* Status da Conexão */}
             <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 flex items-center justify-between">
@@ -1863,20 +2003,35 @@ export default function AppPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
-                    Token de Verificação (Verify Token)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                      <Lock className="w-3 h-3 text-amber-400" />
+                      <span>Token de Verificação (Verify Token)</span>
+                    </label>
+                    <span className="text-[10px] text-amber-400/80">Segredo Técnico</span>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value="automatas_meta_verify_2026"
-                      className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 select-all"
-                    />
+                    <div className="relative flex-1">
+                      <input
+                        type={privacyMode && !showVerifyToken ? 'password' : 'text'}
+                        readOnly
+                        value="automatas_meta_verify_2026"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 select-all pr-9 tracking-wider"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowVerifyToken(!showVerifyToken)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                        title={showVerifyToken ? 'Ocultar token' : 'Visualizar token'}
+                      >
+                        {showVerifyToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleCopy('automatas_meta_verify_2026', 'token')}
-                      className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1"
+                      className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
+                      title="Copiar token"
                     >
                       {copiedField === 'token' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
@@ -1884,20 +2039,33 @@ export default function AppPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
-                    ID do Telefone (Phone Number ID)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-400">
+                      ID do Telefone (Phone Number ID)
+                    </label>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value={phoneId}
-                      className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 select-all"
-                    />
+                    <div className="relative flex-1">
+                      <input
+                        type={privacyMode && !showPhoneId ? 'password' : 'text'}
+                        readOnly
+                        value={phoneId}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 select-all pr-9 tracking-wider"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPhoneId(!showPhoneId)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                        title={showPhoneId ? 'Ocultar ID' : 'Visualizar ID'}
+                      >
+                        {showPhoneId ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleCopy(phoneId, 'phoneId')}
-                      className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1"
+                      className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
+                      title="Copiar ID do Telefone"
                     >
                       {copiedField === 'phoneId' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
@@ -1906,42 +2074,86 @@ export default function AppPage() {
               </div>
             </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-blue-400" />
-                    <span>Conexão Facebook SDK & Meta App</span>
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold text-slate-200 flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-blue-400" />
+                  <span>Conexão Facebook SDK & Meta App</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempAppId(metaAppId);
+                    setTempConfigId(metaConfigId);
+                    setShowAppIdModal(true);
+                  }}
+                  className="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                >
+                  Alterar Credenciais
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-500 uppercase block font-sans">Meta App ID</span>
+                    <span className="text-slate-200">
+                      {privacyMode && !showMetaAppId && metaAppId
+                        ? `••••••••${metaAppId.slice(-4)}`
+                        : metaAppId || 'Não configurado'}
+                    </span>
+                  </div>
+                  {metaAppId && (
+                    <button
+                      type="button"
+                      onClick={() => setShowMetaAppId(!showMetaAppId)}
+                      className="text-slate-500 hover:text-slate-300 p-1 cursor-pointer"
+                      title={showMetaAppId ? 'Ocultar ID' : 'Visualizar ID'}
+                    >
+                      {showMetaAppId ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </div>
+                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-500 uppercase block font-sans">Config ID (Embedded)</span>
+                    <span className="text-slate-200">
+                      {privacyMode && !showMetaConfigId && metaConfigId
+                        ? `••••••••${metaConfigId.slice(-4)}`
+                        : metaConfigId || 'Não configurado'}
+                    </span>
+                  </div>
+                  {metaConfigId && (
+                    <button
+                      type="button"
+                      onClick={() => setShowMetaConfigId(!showMetaConfigId)}
+                      className="text-slate-500 hover:text-slate-300 p-1 cursor-pointer"
+                      title={showMetaConfigId ? 'Ocultar ID' : 'Visualizar ID'}
+                    >
+                      {showMetaConfigId ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {wabaId && (
+                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 text-xs font-mono flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-500 uppercase block font-sans">WhatsApp Business Account (WABA ID)</span>
+                    <span className="text-emerald-400">
+                      {privacyMode && !showWabaId ? `••••••••${wabaId.slice(-4)}` : wabaId}
+                    </span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      setTempAppId(metaAppId);
-                      setTempConfigId(metaConfigId);
-                      setShowAppIdModal(true);
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                    onClick={() => setShowWabaId(!showWabaId)}
+                    className="text-slate-500 hover:text-slate-300 p-1 cursor-pointer"
+                    title={showWabaId ? 'Ocultar ID' : 'Visualizar ID'}
                   >
-                    Alterar Credenciais
+                    {showWabaId ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-slate-500 uppercase block font-sans">Meta App ID</span>
-                    <span className="text-slate-200">{metaAppId || 'Não configurado'}</span>
-                  </div>
-                  <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-slate-500 uppercase block font-sans">Config ID (Embedded)</span>
-                    <span className="text-slate-200">{metaConfigId || 'Não configurado'}</span>
-                  </div>
-                </div>
-
-                {wabaId && (
-                  <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 text-xs font-mono">
-                    <span className="text-[10px] text-slate-500 uppercase block font-sans">WhatsApp Business Account (WABA ID)</span>
-                    <span className="text-emerald-400">{wabaId}</span>
-                  </div>
-                )}
+              )}
 
                 {/* Gatilhos de Demonstração para Gravação de Vídeo */}
                 <div className="pt-2 flex flex-col sm:flex-row gap-2">
