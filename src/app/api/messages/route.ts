@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         ? `${config.phoneNumberId.slice(0, 4)}...${config.phoneNumberId.slice(-4)}`
         : '1275...5658',
       verifyTokenConfigured: true,
-      apiVersion: config.apiVersion || 'v20.0',
+      apiVersion: config.apiVersion || 'v24.0',
       appId: config.appId || 'Configurado via Meta Developers',
       isAuditorMode: true,
       totalMessages: messages.length,
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
             } else {
               existing.lastMessage = m.text;
               existing.lastTimestamp = m.timestamp;
-              if (m.senderName && !existing.name.includes(' ')) {
+              if (m.direction === 'inbound' && m.senderName && !existing.name.includes(' ')) {
                 existing.name = m.senderName;
               }
             }
@@ -268,6 +268,7 @@ export async function POST(request: NextRequest) {
     // DISPARO NO MODO AUDITORIA / SANDBOX SEGURO (SEM ERROS DE API 131030)
     // =========================================================================
     if (isAuditor) {
+      const config = getMetaConfig();
       const targetPhone = cleanPhone || '5511999998888';
       const outId = `auditor_out_${Date.now()}`;
 
@@ -294,7 +295,7 @@ export async function POST(request: NextRequest) {
         from: targetPhone,
         to: '5511921539923',
         direction: 'inbound',
-        text: `[Resposta Automática Bot] Olá! Recebi sua mensagem: "${text}". A automação inteligente e integração WhatsApp Business Cloud API v20.0 da automatas.tech está 100% operacional! 🤖🚀`,
+        text: `[Resposta Automática Bot] Olá! Recebi sua mensagem: "${text}". A automação inteligente e integração WhatsApp Business Cloud API ${config.apiVersion} da automatas.tech está 100% operacional! 🤖🚀`,
         timestamp: new Date(Date.now() + 1000).toISOString(),
         status: 'read',
         senderName: contactName,

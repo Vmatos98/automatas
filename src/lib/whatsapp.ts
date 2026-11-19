@@ -68,7 +68,7 @@ export const getMetaConfig = () => {
     verifyToken: process.env.META_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN || 'automatas_meta_verify_2026',
     accessToken: process.env.META_ACCESS_TOKEN || process.env.WHATSAPP_TOKEN || '',
     phoneNumberId: process.env.META_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID || '',
-    apiVersion: 'v20.0',
+    apiVersion: process.env.META_API_VERSION || 'v24.0',
     appId: process.env.NEXT_PUBLIC_META_APP_ID || '',
     configId: process.env.NEXT_PUBLIC_META_CONFIG_ID || '',
   };
@@ -81,8 +81,8 @@ export interface SendMessageOptions {
 }
 
 /**
- * Envia mensagem de texto via WhatsApp Cloud API v20.0
- * Endpoint: POST https://graph.facebook.com/v20.0/{PHONE_ID}/messages
+ * Envia mensagem de texto via WhatsApp Cloud API
+ * Endpoint: POST https://graph.facebook.com/{API_VERSION}/{PHONE_ID}/messages
  */
 export async function sendWhatsAppTextMessage({ to, text, replyToMessageId }: SendMessageOptions) {
   const { accessToken, phoneNumberId, apiVersion } = getMetaConfig();
