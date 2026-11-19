@@ -119,6 +119,10 @@ export async function POST(request: NextRequest) {
 
           if (!value) continue;
 
+          const metadataPhoneNumberId = value.metadata?.phone_number_id
+            ? String(value.metadata.phone_number_id)
+            : undefined;
+
           // 1. Ecos de mensagens enviadas pelo WhatsApp Business App (Coexistência)
           if (field === 'smb_message_echoes') {
             const echoes = Array.isArray(value.message_echoes) ? value.message_echoes : [];
@@ -138,6 +142,7 @@ export async function POST(request: NextRequest) {
                 text: textContent,
                 timestamp,
                 status: 'sent',
+                phoneNumberId: metadataPhoneNumberId,
               });
             }
             continue;
@@ -183,6 +188,7 @@ export async function POST(request: NextRequest) {
                     text: textContent,
                     timestamp,
                     status,
+                    phoneNumberId: metadataPhoneNumberId,
                   });
                 }
               }
@@ -273,6 +279,7 @@ export async function POST(request: NextRequest) {
                   timestamp,
                   status: 'received',
                   senderName: contactName,
+                  phoneNumberId: metadataPhoneNumberId,
                 });
 
                 // Montar resposta automática inteligente
@@ -292,6 +299,7 @@ export async function POST(request: NextRequest) {
                     to: from,
                     text: botReplyText,
                     replyToMessageId: messageId,
+                    phoneNumberId: metadataPhoneNumberId,
                   });
                   console.log('[Meta Webhook] Resposta automática enviada com sucesso:', sendResult);
                 } catch (sendError) {

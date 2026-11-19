@@ -9,16 +9,38 @@ export interface WhatsAppMessageItem {
   timestamp: string;
   status: 'received' | 'sent' | 'delivered' | 'read' | 'failed';
   senderName?: string;
+  phoneNumberId?: string;
 }
 
 import { db } from './db';
 
 export const messagesStore = {
-  getAll: (): WhatsAppMessageItem[] => {
+  getAll: (phoneNumberId?: string): WhatsAppMessageItem[] => {
     try {
-      const rows = db
-        .prepare('SELECT * FROM whatsapp_messages ORDER BY timestamp DESC LIMIT 100')
-        .all() as any[];
+      const cleanId = phoneNumberId && phoneNumberId !== 'all' ? phoneNumberId.trim() : '';
+      const defaultEnvId = process.env.META_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID || '';
+      let rows: any[] = [];
+
+      if (cleanId) {
+        if (defaultEnvId && cleanId === defaultEnvId) {
+          rows = db
+            .prepare(
+              'SELECT * FROM whatsapp_messages WHERE phone_number_id = ? OR phone_number_id IS NULL ORDER BY timestamp DESC LIMIT 250'
+            )
+            .all(cleanId) as any[];
+        } else {
+          rows = db
+            .prepare(
+              'SELECT * FROM whatsapp_messages WHERE phone_number_id = ? ORDER BY timestamp DESC LIMIT 250'
+            )
+            .all(cleanId) as any[];
+        }
+      } else {
+        rows = db
+          .prepare('SELECT * FROM whatsapp_messages ORDER BY timestamp DESC LIMIT 250')
+          .all() as any[];
+      }
+
       return rows.map((r) => ({
         id: r.id,
         from: r.from_phone,
@@ -28,6 +50,7 @@ export const messagesStore = {
         timestamp: r.timestamp,
         status: r.status as any,
         senderName: r.sender_name || undefined,
+        phoneNumberId: r.phone_number_id || undefined,
       }));
     } catch (e) {
       console.warn('Falha ao ler mensagens do SQLite:', e);
@@ -37,9 +60,11 @@ export const messagesStore = {
   add: (message: WhatsAppMessageItem) => {
     try {
       db.prepare(`
-        INSERT INTO whatsapp_messages (id, from_phone, to_phone, direction, text, status, sender_name, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET status = excluded.status
+        INSERT INTO whatsapp_messages (id, from_phone, to_phone, direction, text, status, sender_name, phone_number_id, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          status = excluded.status,
+          phone_number_id = COALESCE(excluded.phone_number_id, whatsapp_messages.phone_number_id)
       `).run(
         message.id,
         message.from,
@@ -48,6 +73,7 @@ export const messagesStore = {
         message.text,
         message.status,
         message.senderName || null,
+        message.phoneNumberId || null,
         message.timestamp || new Date().toISOString()
       );
     } catch (e) {
@@ -78,14 +104,36 @@ export interface SendMessageOptions {
   to: string;
   text: string;
   replyToMessageId?: string;
+  phoneNumberId?: string;
+  accessToken?: string;
 }
 
 /**
  * Envia mensagem de texto via WhatsApp Cloud API
  * Endpoint: POST https://graph.facebook.com/{API_VERSION}/{PHONE_ID}/messages
  */
-export async function sendWhatsAppTextMessage({ to, text, replyToMessageId }: SendMessageOptions) {
-  const { accessToken, phoneNumberId, apiVersion } = getMetaConfig();
+export async function sendWhatsAppTextMessage({
+  to,
+  text,
+  replyToMessageId,
+  phoneNumberId: requestedPhoneNumberId,
+  accessToken: overrideToken,
+}: SendMessageOptions) {
+  const { accessToken: envToken, phoneNumberId: envPhoneId, apiVersion } = getMetaConfig();
+  const phoneNumberId = requestedPhoneNumberId?.trim() || envPhoneId;
+  let accessToken = overrideToken?.trim() || '';
+
+  if (!accessToken && phoneNumberId) {
+    try {
+      const row = db
+        .prepare('SELECT access_token FROM whatsapp_accounts WHERE phone_number_id = ? LIMIT 1')
+        .get(phoneNumberId) as { access_token?: string | null } | undefined;
+      if (row?.access_token) accessToken = row.access_token;
+    } catch {
+      // ignora
+    }
+  }
+  if (!accessToken) accessToken = envToken;
 
   // Se as chaves não estiverem configuradas, simular com log informativo
   if (!accessToken || !phoneNumberId) {
@@ -102,6 +150,7 @@ export async function sendWhatsAppTextMessage({ to, text, replyToMessageId }: Se
       text,
       timestamp: new Date().toISOString(),
       status: 'sent',
+      phoneNumberId: phoneNumberId || undefined,
     });
 
     return {
@@ -159,6 +208,7 @@ export async function sendWhatsAppTextMessage({ to, text, replyToMessageId }: Se
       text,
       timestamp: new Date().toISOString(),
       status: 'sent',
+      phoneNumberId,
     });
 
     return {

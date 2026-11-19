@@ -249,6 +249,12 @@ function normalizeEmbeddedSignupPayload(payload: Record<string, unknown>): Whats
   };
 }
 
+function isTerminalEmbeddedEvent(data?: WhatsAppEmbeddedSignupData): boolean {
+  const evt = data?.event;
+  if (!evt) return false;
+  return evt.startsWith('FINISH') || evt === 'CANCEL' || evt === 'ERROR';
+}
+
 function isFinishEmbeddedEvent(data?: WhatsAppEmbeddedSignupData): boolean {
   return Boolean(data?.event && data.event.startsWith('FINISH'));
 }
@@ -305,7 +311,7 @@ export function launchWhatsAppEmbeddedSignup(options: {
             options.onEmbeddedEvent(capturedEmbeddedData);
           }
 
-          if (isFinishEmbeddedEvent(capturedEmbeddedData) && finishWaitResolver) {
+          if (isTerminalEmbeddedEvent(capturedEmbeddedData) && finishWaitResolver) {
             finishWaitResolver();
             finishWaitResolver = null;
           }
@@ -356,9 +362,41 @@ export function launchWhatsAppEmbeddedSignup(options: {
           resolve(result);
         };
 
-        if (response && response.authResponse) {
-          const authResponse = response.authResponse;
-          if (isFinishEmbeddedEvent(capturedEmbeddedData)) {
+        const evaluateAndFinalize = (authResponse?: FacebookAuthResponse, rawStatus?: string) => {
+          const evt = capturedEmbeddedData?.event;
+
+          if (evt === 'CANCEL') {
+            finalize({
+              status: 'unknown',
+              error: capturedEmbeddedData?.current_step
+                ? `Fluxo de Onboarding cancelado na etapa "${capturedEmbeddedData.current_step}". Nenhuma conta foi alterada.`
+                : 'Fluxo de Onboarding cancelado pelo usuário. Nenhuma conta foi alterada.',
+              embeddedData: capturedEmbeddedData,
+            });
+            return;
+          }
+
+          if (evt === 'ERROR' || capturedEmbeddedData?.error_message) {
+            const errMsg = capturedEmbeddedData?.error_message
+              ? `Erro no Onboarding WhatsApp: ${capturedEmbeddedData.error_message}${
+                  capturedEmbeddedData.current_step
+                    ? ` (etapa: ${capturedEmbeddedData.current_step})`
+                    : ''
+                }`
+              : 'Erro durante o Onboarding de WhatsApp na Meta.';
+            finalize({
+              status: 'error',
+              error: errMsg,
+              embeddedData: capturedEmbeddedData,
+            });
+            return;
+          }
+
+          if (
+            authResponse &&
+            (isFinishEmbeddedEvent(capturedEmbeddedData) ||
+              Boolean(capturedEmbeddedData?.waba_id || capturedEmbeddedData?.phone_number_id))
+          ) {
             finalize({
               status: 'connected',
               authResponse,
@@ -367,38 +405,41 @@ export function launchWhatsAppEmbeddedSignup(options: {
             return;
           }
 
-          // Aguarda até 1500ms caso o postMessage FINISH* chegue logo após o callback do FB.login
-          finishWaitResolver = () => {
+          if (authResponse) {
             finalize({
-              status: 'connected',
-              authResponse,
+              status: 'unknown',
+              error:
+                'Onboarding de WhatsApp não foi concluído no pop-up da Meta (nenhuma conta ou número foi confirmado).',
               embeddedData: capturedEmbeddedData,
             });
-          };
-          timeoutId = setTimeout(() => {
-            finalize({
-              status: 'connected',
-              authResponse,
-              embeddedData: capturedEmbeddedData,
-            });
-          }, 1500);
-        } else {
-          let errorText = 'Fluxo de Onboarding de WhatsApp cancelado pelo usuário.';
-          if (capturedEmbeddedData?.error_message) {
-            errorText = `Erro no Onboarding WhatsApp: ${capturedEmbeddedData.error_message}${
-              capturedEmbeddedData.current_step
-                ? ` (etapa: ${capturedEmbeddedData.current_step})`
-                : ''
-            }`;
-          } else if (capturedEmbeddedData?.current_step) {
-            errorText = `Fluxo de Onboarding de WhatsApp cancelado na etapa "${capturedEmbeddedData.current_step}".`;
+            return;
           }
 
           finalize({
-            status: response?.status || 'unknown',
-            error: errorText,
+            status: (rawStatus as FacebookLoginResult['status']) || 'unknown',
+            error: capturedEmbeddedData?.current_step
+              ? `Fluxo de Onboarding de WhatsApp cancelado na etapa "${capturedEmbeddedData.current_step}".`
+              : 'Fluxo de Onboarding de WhatsApp cancelado pelo usuário.',
             embeddedData: capturedEmbeddedData,
           });
+        };
+
+        if (response && response.authResponse) {
+          const authResponse = response.authResponse;
+          if (isTerminalEmbeddedEvent(capturedEmbeddedData)) {
+            evaluateAndFinalize(authResponse, response.status);
+            return;
+          }
+
+          // Aguarda até 1500ms caso o postMessage FINISH*/CANCEL chegue logo após o callback do FB.login
+          finishWaitResolver = () => {
+            evaluateAndFinalize(authResponse, response.status);
+          };
+          timeoutId = setTimeout(() => {
+            evaluateAndFinalize(authResponse, response.status);
+          }, 1500);
+        } else {
+          evaluateAndFinalize(undefined, response?.status);
         }
       }, loginOptions);
     } catch (err: unknown) {

@@ -110,7 +110,34 @@ function initTables(db: Database.Database) {
       text TEXT NOT NULL,
       status TEXT NOT NULL, -- 'received', 'sent', 'delivered', 'read', 'failed'
       sender_name TEXT,
+      phone_number_id TEXT,
       timestamp TEXT NOT NULL
+    );
+
+    -- 5. Contas / Números WhatsApp Business Conectados (Multi-número & Coexistência)
+    CREATE TABLE IF NOT EXISTS whatsapp_accounts (
+      phone_number_id TEXT PRIMARY KEY,
+      waba_id TEXT,
+      business_id TEXT,
+      display_phone_number TEXT,
+      verified_name TEXT,
+      access_token TEXT,
+      user_id TEXT,
+      user_name TEXT,
+      user_email TEXT,
+      user_picture TEXT,
+      is_coexistence INTEGER NOT NULL DEFAULT 0,
+      onboarding_mode TEXT NOT NULL DEFAULT 'standard',
+      auth_type TEXT NOT NULL DEFAULT 'embedded_signup',
+      token_exchanged INTEGER NOT NULL DEFAULT 0,
+      webhook_subscribed INTEGER NOT NULL DEFAULT 0,
+      contacts_synced INTEGER NOT NULL DEFAULT 0,
+      history_synced INTEGER NOT NULL DEFAULT 0,
+      last_sync_at TEXT,
+      sync_warnings TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      connected_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     );
 
     -- Índices para busca ultrarrápida por telefone e e-mail
@@ -118,6 +145,18 @@ function initTables(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_users_email ON registered_users(email);
     CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON whatsapp_messages(timestamp DESC);
   `);
+
+  try {
+    const columns = db
+      .prepare('PRAGMA table_info(whatsapp_messages)')
+      .all() as Array<{ name: string }>;
+    if (!columns.some((c) => c.name === 'phone_number_id')) {
+      db.exec('ALTER TABLE whatsapp_messages ADD COLUMN phone_number_id TEXT;');
+    }
+    db.exec('CREATE INDEX IF NOT EXISTS idx_messages_phone_id ON whatsapp_messages(phone_number_id);');
+  } catch {
+    // fallback silencioso
+  }
 }
 
 /**

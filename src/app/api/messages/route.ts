@@ -18,6 +18,7 @@ const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || 'gcYQtZJb6nADOf5ob5QK9S
 export async function GET(request: NextRequest) {
   const config = getMetaConfig();
   const { searchParams } = new URL(request.url);
+  const selectedPhoneNumberId = (searchParams.get('phoneNumberId') || '').trim();
   const isAuditor =
     request.headers.get('x-auditor-mode') === 'true' ||
     searchParams.get('auditor') === 'true';
@@ -105,7 +106,11 @@ export async function GET(request: NextRequest) {
   // 1. Se houver BACKEND_URL configurada nas variáveis de ambiente, consulta o backend dedicado
   if (BACKEND_URL) {
     try {
-      const backendRes = await fetch(`${BACKEND_URL}/api/messages`, {
+      const backendQuery =
+        selectedPhoneNumberId && selectedPhoneNumberId !== 'all'
+          ? `?phoneNumberId=${encodeURIComponent(selectedPhoneNumberId)}`
+          : '';
+      const backendRes = await fetch(`${BACKEND_URL}/api/messages${backendQuery}`, {
         headers: {
           'x-api-key': INTERNAL_API_KEY,
         },
@@ -114,18 +119,24 @@ export async function GET(request: NextRequest) {
 
       if (backendRes.ok) {
         const backendData = await backendRes.json();
+        const ownChannelIds = new Set<string>(
+          Array.isArray(backendData.accounts)
+            ? backendData.accounts.map((a: any) => String(a.phoneNumberId || ''))
+            : []
+        );
 
-        // 1. Contatos cadastrados no banco
+        // 1. Contatos cadastrados no banco local (exclui registros antigos meta_* e próprios canais)
         const contactsMap = new Map<string, ContactItem>();
         try {
           const users = db
             .prepare(
-              "SELECT id, name, phone, email FROM registered_users WHERE status != 'deleted' AND phone IS NOT NULL"
+              "SELECT id, name, phone, email FROM registered_users WHERE status != 'deleted' AND phone IS NOT NULL AND id NOT LIKE 'meta_%'"
             )
             .all() as { id: string; name: string; phone: string; email?: string }[];
 
           for (const u of users) {
             const clean = u.phone.replace(/\D/g, '');
+            if (!clean || ownChannelIds.has(clean)) continue;
             contactsMap.set(clean, {
               id: u.id,
               name: u.name,
@@ -144,20 +155,27 @@ export async function GET(request: NextRequest) {
             const phone = m.direction === 'inbound' ? m.from : m.to;
             if (!phone) continue;
             const clean = phone.replace(/\D/g, '');
-            if (!clean || clean.length < 8) continue;
+            if (!clean || clean.length < 8 || ownChannelIds.has(clean)) continue;
 
             const existing = contactsMap.get(clean);
             if (!existing) {
               contactsMap.set(clean, {
                 id: `phone_${clean}`,
-                name: m.senderName || (m.direction === 'inbound' ? `WhatsApp +${clean}` : `Contato +${clean}`),
+                name:
+                  m.direction === 'inbound' && m.senderName
+                    ? m.senderName
+                    : m.direction === 'inbound'
+                      ? `WhatsApp +${clean}`
+                      : `Contato +${clean}`,
                 phone: clean,
                 lastMessage: m.text,
                 lastTimestamp: m.timestamp,
               });
             } else {
-              existing.lastMessage = m.text;
-              existing.lastTimestamp = m.timestamp;
+              if (!existing.lastTimestamp || m.timestamp > existing.lastTimestamp) {
+                existing.lastMessage = m.text;
+                existing.lastTimestamp = m.timestamp;
+              }
               if (m.direction === 'inbound' && m.senderName && !existing.name.includes(' ')) {
                 existing.name = m.senderName;
               }
@@ -165,12 +183,19 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // 3. Incluir quaisquer contatos prévios do backend
+        // 3. Incluir contatos sincronizados/prévios retornados pelo backend
         if (Array.isArray(backendData.contacts)) {
           for (const c of backendData.contacts) {
             const clean = String(c.phone || '').replace(/\D/g, '');
-            if (clean && !contactsMap.has(clean)) {
+            if (!clean || ownChannelIds.has(clean)) continue;
+            if (!contactsMap.has(clean)) {
               contactsMap.set(clean, c);
+            } else {
+              const existing = contactsMap.get(clean)!;
+              if (c.lastTimestamp && (!existing.lastTimestamp || c.lastTimestamp > existing.lastTimestamp)) {
+                existing.lastTimestamp = c.lastTimestamp;
+                if (c.lastMessage) existing.lastMessage = c.lastMessage;
+              }
             }
           }
         }
@@ -193,13 +218,13 @@ export async function GET(request: NextRequest) {
   }
 
   // 2. Fallback local (execução autônoma na Vercel/local)
-  const messages = messagesStore.getAll();
+  const messages = messagesStore.getAll(selectedPhoneNumberId);
 
   let contacts: ContactItem[] = [];
   try {
     const users = db
       .prepare(
-        "SELECT id, name, phone, email FROM registered_users WHERE status != 'deleted' AND phone IS NOT NULL"
+        "SELECT id, name, phone, email FROM registered_users WHERE status != 'deleted' AND phone IS NOT NULL AND id NOT LIKE 'meta_%'"
       )
       .all() as { id: string; name: string; phone: string; email?: string }[];
 
@@ -376,6 +401,7 @@ export async function POST(request: NextRequest) {
         to: senderPhone,
         text: botResponseText,
         replyToMessageId: inboundId,
+        phoneNumberId: typeof body.phoneNumberId === 'string' ? body.phoneNumberId : undefined,
       });
 
       return NextResponse.json({
@@ -386,7 +412,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const result = await sendWhatsAppTextMessage({ to: cleanPhone, text });
+    const result = await sendWhatsAppTextMessage({
+      to: cleanPhone,
+      text,
+      phoneNumberId: typeof body.phoneNumberId === 'string' ? body.phoneNumberId : undefined,
+    });
 
     return NextResponse.json({
       success: true,
