@@ -340,43 +340,60 @@ export function launchWhatsAppEmbeddedSignup(options: {
     }
 
     try {
-      window.FB.login(async (response: FacebookLoginResult) => {
-        if (response && response.authResponse) {
-          // Aguarda até 1500ms caso o postMessage FINISH* chegue logo após o callback do FB.login
-          if (!isFinishEmbeddedEvent(capturedEmbeddedData)) {
-            await new Promise<void>((waitResolve) => {
-              const timeoutId = setTimeout(() => {
-                finishWaitResolver = null;
-                waitResolve();
-              }, 1500);
+      window.FB.login(function (response: FacebookLoginResult) {
+        let completed = false;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-              finishWaitResolver = () => {
-                clearTimeout(timeoutId);
-                waitResolve();
-              };
+        const finalize = (result: FacebookLoginResult) => {
+          if (completed) return;
+          completed = true;
+          if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          finishWaitResolver = null;
+          window.removeEventListener('message', messageListener);
+          resolve(result);
+        };
+
+        if (response && response.authResponse) {
+          const authResponse = response.authResponse;
+          if (isFinishEmbeddedEvent(capturedEmbeddedData)) {
+            finalize({
+              status: 'connected',
+              authResponse,
+              embeddedData: capturedEmbeddedData,
             });
+            return;
           }
 
-          window.removeEventListener('message', messageListener);
-          resolve({
-            status: 'connected',
-            authResponse: response.authResponse,
-            embeddedData: capturedEmbeddedData,
-          });
+          // Aguarda até 1500ms caso o postMessage FINISH* chegue logo após o callback do FB.login
+          finishWaitResolver = () => {
+            finalize({
+              status: 'connected',
+              authResponse,
+              embeddedData: capturedEmbeddedData,
+            });
+          };
+          timeoutId = setTimeout(() => {
+            finalize({
+              status: 'connected',
+              authResponse,
+              embeddedData: capturedEmbeddedData,
+            });
+          }, 1500);
         } else {
-          window.removeEventListener('message', messageListener);
           let errorText = 'Fluxo de Onboarding de WhatsApp cancelado pelo usuário.';
           if (capturedEmbeddedData?.error_message) {
-            errorText = `Erro no Onboarding WhatsApp: ${capturedEmbeddedData.error_message}${
-              capturedEmbeddedData.current_step
+            errorText = `Erro no Onboarding WhatsApp: ${capturedEmbeddedData.error_message}${capturedEmbeddedData.current_step
                 ? ` (etapa: ${capturedEmbeddedData.current_step})`
                 : ''
-            }`;
+              }`;
           } else if (capturedEmbeddedData?.current_step) {
             errorText = `Fluxo de Onboarding de WhatsApp cancelado na etapa "${capturedEmbeddedData.current_step}".`;
           }
 
-          resolve({
+          finalize({
             status: response?.status || 'unknown',
             error: errorText,
             embeddedData: capturedEmbeddedData,
@@ -384,6 +401,7 @@ export function launchWhatsAppEmbeddedSignup(options: {
         }
       }, loginOptions);
     } catch (err: unknown) {
+      finishWaitResolver = null;
       window.removeEventListener('message', messageListener);
       const msg = err instanceof Error ? err.message : String(err);
       resolve({ status: 'error', error: msg, embeddedData: capturedEmbeddedData });
