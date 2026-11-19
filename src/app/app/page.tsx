@@ -264,7 +264,7 @@ export default function AppPage() {
     if (savedUser) {
       try {
         setFbUserProfile(JSON.parse(savedUser));
-      } catch { }
+      } catch {}
     }
 
     // Inicializa SDK do Facebook
@@ -331,7 +331,7 @@ export default function AppPage() {
           setMetaConfigId(data.configId);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const handleSaveAppCredentials = (newAppId: string, newConfigId: string) => {
@@ -459,8 +459,8 @@ export default function AppPage() {
 
       const hasCompletedAssets = Boolean(
         mergedEventData.event?.startsWith('FINISH') ||
-        mergedEventData.waba_id ||
-        mergedEventData.phone_number_id
+          mergedEventData.waba_id ||
+          mergedEventData.phone_number_id
       );
 
       if (res.status === 'connected' && res.authResponse && hasCompletedAssets) {
@@ -473,11 +473,11 @@ export default function AppPage() {
         const resolvedBusinessId = mergedEventData.business_id || undefined;
         const detectedCoexistence = Boolean(
           mergedEventData.is_coexistence ||
-          mergedEventData.is_on_biz_app ||
-          mergedEventData.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING' ||
-          (useCoexistence &&
-            mergedEventData.event !== 'FINISH' &&
-            mergedEventData.event !== 'FINISH_ONLY_WABA')
+            mergedEventData.is_on_biz_app ||
+            mergedEventData.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING' ||
+            (useCoexistence &&
+              mergedEventData.event !== 'FINISH' &&
+              mergedEventData.event !== 'FINISH_ONLY_WABA')
         );
 
         const authRes = await fetch('/api/meta/auth', {
@@ -1202,10 +1202,11 @@ export default function AppPage() {
             <button
               type="button"
               onClick={() => setCurrentView('chat')}
-              className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${currentView === 'chat'
+              className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${
+                currentView === 'chat'
                   ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/30'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                }`}
+              }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Conversas</span>
@@ -1217,10 +1218,11 @@ export default function AppPage() {
                 <button
                   type="button"
                   onClick={() => setCurrentView('users')}
-                  className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${currentView === 'users'
+                  className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${
+                    currentView === 'users'
                       ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/30'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                    }`}
+                  }`}
                   title="Gerenciamento de contas de usuários e leads"
                 >
                   <Users className="w-3.5 h-3.5 text-blue-400" />
@@ -1285,10 +1287,11 @@ export default function AppPage() {
             <button
               type="button"
               onClick={toggleAuditorMode}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${isAuditorMode
+              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                isAuditorMode
                   ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
                   : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
-                }`}
+              }`}
               title="Clique para alternar entre a visão de teste da Meta e a visão real de produção"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -1299,10 +1302,11 @@ export default function AppPage() {
             <button
               type="button"
               onClick={toggleRoleView}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${isAdmin
+              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                isAdmin
                   ? 'bg-blue-600/10 border-blue-500/30 text-blue-300 hover:bg-blue-600/20'
                   : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
-                }`}
+              }`}
               title="Clique para alternar entre perfil Administrador e Atendente"
             >
               <span>{isAdmin ? '👑 Admin' : '👤 Atendente'}</span>
@@ -1323,10 +1327,11 @@ export default function AppPage() {
             <button
               type="button"
               onClick={() => setPrivacyMode(!privacyMode)}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${privacyMode
+              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                privacyMode
                   ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/40'
                   : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
-                }`}
+              }`}
               title={privacyMode ? 'Modo Gravação Ativo: Dados técnicos mascarados' : 'Modo Padrão: Clique para mascarar dados para gravação'}
             >
               {privacyMode ? <EyeOff className="w-3.5 h-3.5 text-emerald-400" /> : <Eye className="w-3.5 h-3.5" />}
@@ -1413,8 +1418,9 @@ export default function AppPage() {
                 setCurrentView('chat');
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${currentView === 'chat' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
-                }`}
+              className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                currentView === 'chat' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
+              }`}
             >
               <MessageSquare className="w-4 h-4" />
               <span>Conversas WhatsApp</span>
@@ -1428,8 +1434,9 @@ export default function AppPage() {
                     setCurrentView('users');
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${currentView === 'users' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
-                    }`}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                    currentView === 'users' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
+                  }`}
                 >
                   <Users className="w-4 h-4 text-blue-400" />
                   <span>Gerenciar Contas & Usuários</span>
@@ -1508,10 +1515,11 @@ export default function AppPage() {
         {/* Feedback Alert */}
         {feedbackMessage && (
           <div
-            className={`p-3 rounded-xl border text-xs flex items-center justify-between transition-all animate-in fade-in ${feedbackMessage.type === 'success'
+            className={`p-3 rounded-xl border text-xs flex items-center justify-between transition-all animate-in fade-in ${
+              feedbackMessage.type === 'success'
                 ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
                 : 'bg-red-950/40 border-red-500/40 text-red-200'
-              }`}
+            }`}
           >
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -1623,10 +1631,11 @@ export default function AppPage() {
                     key={tab.id}
                     type="button"
                     onClick={() => setUserFilter(tab.id)}
-                    className={`px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap ${userFilter === tab.id
+                    className={`px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap ${
+                      userFilter === tab.id
                         ? 'bg-blue-600 text-white font-semibold'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                      }`}
+                    }`}
                   >
                     {tab.label}
                   </button>
@@ -1714,59 +1723,62 @@ export default function AppPage() {
                             {/* Origem */}
                             <td className="px-5 py-3.5">
                               <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${user.source === 'whatsapp_bot'
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
+                                  user.source === 'whatsapp_bot'
                                     ? 'bg-blue-950/40 border-blue-500/30 text-blue-300'
                                     : user.source === 'whatsapp_coexistence'
-                                      ? 'bg-purple-950/40 border-purple-500/30 text-purple-300'
-                                      : user.source === 'whatsapp_embedded_signup'
-                                        ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
-                                        : user.source === 'lead_form'
-                                          ? 'bg-purple-950/40 border-purple-500/30 text-purple-300'
-                                          : user.source === 'meta_app'
-                                            ? 'bg-cyan-950/40 border-cyan-500/30 text-cyan-300'
-                                            : 'bg-slate-800 border-slate-700 text-slate-300'
-                                  }`}
+                                    ? 'bg-purple-950/40 border-purple-500/30 text-purple-300'
+                                    : user.source === 'whatsapp_embedded_signup'
+                                    ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
+                                    : user.source === 'lead_form'
+                                    ? 'bg-purple-950/40 border-purple-500/30 text-purple-300'
+                                    : user.source === 'meta_app'
+                                    ? 'bg-cyan-950/40 border-cyan-500/30 text-cyan-300'
+                                    : 'bg-slate-800 border-slate-700 text-slate-300'
+                                }`}
                               >
                                 {user.source === 'whatsapp_bot'
                                   ? 'WhatsApp Bot'
                                   : user.source === 'whatsapp_coexistence'
-                                    ? 'Coexistência WA'
-                                    : user.source === 'whatsapp_embedded_signup'
-                                      ? 'Embedded Signup'
-                                      : user.source === 'lead_form'
-                                        ? 'Formulário Lead'
-                                        : user.source === 'meta_app'
-                                          ? 'Meta App'
-                                          : 'Manual Admin'}
+                                  ? 'Coexistência WA'
+                                  : user.source === 'whatsapp_embedded_signup'
+                                  ? 'Embedded Signup'
+                                  : user.source === 'lead_form'
+                                  ? 'Formulário Lead'
+                                  : user.source === 'meta_app'
+                                  ? 'Meta App'
+                                  : 'Manual Admin'}
                               </span>
                             </td>
 
                             {/* Status */}
                             <td className="px-5 py-3.5">
                               <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${user.status === 'active'
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
+                                  user.status === 'active'
                                     ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
                                     : user.status === 'blocked'
-                                      ? 'bg-amber-950/40 border-amber-500/30 text-amber-300'
-                                      : 'bg-red-950/40 border-red-500/30 text-red-300'
-                                  }`}
+                                    ? 'bg-amber-950/40 border-amber-500/30 text-amber-300'
+                                    : 'bg-red-950/40 border-red-500/30 text-red-300'
+                                }`}
                               >
                                 <span
-                                  className={`w-1.5 h-1.5 rounded-full ${user.status === 'active'
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    user.status === 'active'
                                       ? 'bg-emerald-400 animate-pulse'
                                       : user.status === 'blocked'
-                                        ? 'bg-amber-400'
-                                        : 'bg-red-400'
-                                    }`}
+                                      ? 'bg-amber-400'
+                                      : 'bg-red-400'
+                                  }`}
                                 />
                                 <span className="capitalize">
                                   {user.status === 'active'
                                     ? 'Ativo'
                                     : user.status === 'blocked'
-                                      ? 'Bloqueado'
-                                      : user.status === 'pending_deletion'
-                                        ? 'Pendente Exclusão'
-                                        : 'Excluído'}
+                                    ? 'Bloqueado'
+                                    : user.status === 'pending_deletion'
+                                    ? 'Pendente Exclusão'
+                                    : 'Excluído'}
                                 </span>
                               </span>
                             </td>
@@ -1832,349 +1844,354 @@ export default function AppPage() {
           /* ======================================================== */
           /* TELA PADRÃO: CHAT & ATENDIMENTO WHATSAPP (2 COLUNAS)     */
           /* ======================================================== */
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-12 rounded-3xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl min-h-[620px]">
-            {/* COLUNA ESQUERDA: LISTA DE CONTATOS (4 cols) */}
-            <div className="md:col-span-4 border-r border-slate-800 flex flex-col bg-slate-950/50">
-              {/* Header da lista de contatos */}
-              <div className="p-4 border-b border-slate-800 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-blue-400" />
-                  <h2 className="text-sm font-bold text-slate-100">Conversas</h2>
-                  <span className="text-[11px] px-2 py-0.2 rounded-full bg-slate-800 text-slate-400 font-mono">
-                    {contacts.length}
-                  </span>
-                </div>
-                <button
-                  onClick={() => setShowNewContactModal(true)}
-                  className="text-xs text-blue-400 hover:text-blue-300 p-1.5 rounded-lg hover:bg-slate-900 transition-colors flex items-center gap-1"
-                  title="Iniciar conversa com novo número"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Novo</span>
-                </button>
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-12 rounded-3xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl min-h-[620px]">
+          {/* COLUNA ESQUERDA: LISTA DE CONTATOS (4 cols) */}
+          <div className="md:col-span-4 border-r border-slate-800 flex flex-col bg-slate-950/50">
+            {/* Header da lista de contatos */}
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-blue-400" />
+                <h2 className="text-sm font-bold text-slate-100">Conversas</h2>
+                <span className="text-[11px] px-2 py-0.2 rounded-full bg-slate-800 text-slate-400 font-mono">
+                  {contacts.length}
+                </span>
               </div>
+              <button
+                onClick={() => setShowNewContactModal(true)}
+                className="text-xs text-blue-400 hover:text-blue-300 p-1.5 rounded-lg hover:bg-slate-900 transition-colors flex items-center gap-1"
+                title="Iniciar conversa com novo número"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Novo</span>
+              </button>
+            </div>
 
-              {/* Seletor de Números WhatsApp Conectados */}
-              {connectedAccounts.length > 0 && (
-                <div className="px-3 py-2 border-b border-slate-800/80 bg-slate-950/80 space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
-                    <span>Números Conectados ({connectedAccounts.length})</span>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => setShowMetaSettingsModal(true)}
-                        className="text-blue-400 hover:text-blue-300 normal-case cursor-pointer"
-                      >
-                        Gerenciar
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-                    {connectedAccounts.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleSelectChannel('all')}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap border transition-colors cursor-pointer ${activeChannelId === 'all'
-                            ? 'bg-blue-600 border-blue-500 text-white'
-                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                          }`}
-                      >
-                        Todos ({connectedAccounts.length})
-                      </button>
-                    )}
-                    {connectedAccounts.map((acc) => {
-                      const isActive = activeChannelId === acc.phoneNumberId;
-                      const shortLabel =
-                        acc.displayPhoneNumber ||
-                        (privacyMode
-                          ? `••••${acc.phoneNumberId.slice(-4)}`
-                          : acc.phoneNumberId);
-                      return (
-                        <button
-                          key={acc.phoneNumberId}
-                          type="button"
-                          onClick={() => handleSelectChannel(acc.phoneNumberId)}
-                          title={`${acc.verifiedName || acc.userName || 'WhatsApp'} • ID: ${acc.phoneNumberId}`}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap border flex items-center gap-1.5 transition-colors cursor-pointer ${isActive
-                              ? 'bg-blue-600/25 border-blue-500 text-blue-200'
-                              : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                            }`}
-                        >
-                          <Smartphone className="w-3 h-3 text-emerald-400 shrink-0" />
-                          <span>{shortLabel}</span>
-                          {acc.isCoexistence && (
-                            <span className="text-[9px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                              Coex
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Barra de Pesquisa */}
-              <div className="p-3 border-b border-slate-800/80">
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    value={searchFilter}
-                    onChange={(e) => setSearchFilter(e.target.value)}
-                    placeholder="Buscar por nome ou número..."
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                </div>
-              </div>
-
-              {/* Lista com Scroll */}
-              <div className="flex-1 overflow-y-auto divide-y divide-slate-800/50">
-                {filteredContacts.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500 text-xs space-y-2">
-                    <p>Nenhuma conversa ativa no momento.</p>
+            {/* Seletor de Números WhatsApp Conectados */}
+            {connectedAccounts.length > 0 && (
+              <div className="px-3 py-2 border-b border-slate-800/80 bg-slate-950/80 space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                  <span>Números Conectados ({connectedAccounts.length})</span>
+                  {isAdmin && (
                     <button
                       type="button"
-                      onClick={() => setShowNewContactModal(true)}
-                      className="inline-flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                      onClick={() => setShowMetaSettingsModal(true)}
+                      className="text-blue-400 hover:text-blue-300 normal-case cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Iniciar conversa</span>
+                      Gerenciar
                     </button>
-                  </div>
-                ) : (
-                  filteredContacts.map((contact) => {
-                    const isSelected = contact.phone === selectedContactPhone;
-                    const initials = contact.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase();
-
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+                  {connectedAccounts.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectChannel('all')}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap border transition-colors cursor-pointer ${
+                        activeChannelId === 'all'
+                          ? 'bg-blue-600 border-blue-500 text-white'
+                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      Todos ({connectedAccounts.length})
+                    </button>
+                  )}
+                  {connectedAccounts.map((acc) => {
+                    const isActive = activeChannelId === acc.phoneNumberId;
+                    const shortLabel =
+                      acc.displayPhoneNumber ||
+                      (privacyMode
+                        ? `••••${acc.phoneNumberId.slice(-4)}`
+                        : acc.phoneNumberId);
                     return (
                       <button
-                        key={contact.id}
-                        onClick={() => setSelectedContactPhone(contact.phone)}
-                        className={`w-full p-3.5 text-left flex items-start gap-3 transition-all cursor-pointer ${isSelected
-                            ? 'bg-blue-600/10 border-l-4 border-l-blue-500 text-slate-100'
-                            : 'hover:bg-slate-900/40 text-slate-300'
-                          }`}
+                        key={acc.phoneNumberId}
+                        type="button"
+                        onClick={() => handleSelectChannel(acc.phoneNumberId)}
+                        title={`${acc.verifiedName || acc.userName || 'WhatsApp'} • ID: ${acc.phoneNumberId}`}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-blue-600/25 border-blue-500 text-blue-200'
+                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        }`}
                       >
-                        {/* Avatar */}
-                        <div className="relative shrink-0">
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${isSelected
-                                ? 'bg-blue-600 text-white shadow-md shadow-blue-900/30'
-                                : 'bg-slate-800 text-slate-300'
-                              }`}
-                          >
-                            {initials || <User className="w-4 h-4" />}
-                          </div>
-                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950" />
-                        </div>
-
-                        {/* Informações */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="font-semibold text-xs truncate text-slate-200">
-                              {contact.name}
-                            </span>
-                            {contact.lastTimestamp && (
-                              <span className="text-[10px] text-slate-500 shrink-0">
-                                {new Date(contact.lastTimestamp).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11px] text-slate-500 font-mono mb-1 truncate">
-                            {contact.phone}
-                          </div>
-                          <p className="text-[11px] text-slate-400 truncate leading-snug">
-                            {contact.lastMessage || 'Clique para abrir a conversa'}
-                          </p>
-                        </div>
+                        <Smartphone className="w-3 h-3 text-emerald-400 shrink-0" />
+                        <span>{shortLabel}</span>
+                        {acc.isCoexistence && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                            Coex
+                          </span>
+                        )}
                       </button>
                     );
-                  })
-                )}
-              </div>
-              {/* Rodapé da Coluna de Conversas com Links de Conformidade */}
-              <div className="p-3 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-[11px] text-slate-400">
-                <span className="flex items-center gap-1 text-slate-500">
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  <span>Meta Compliant</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <Link href="/exclusao-dados" className="hover:text-red-400 transition-colors" title="Exclusão de Dados LGPD">
-                    Exclusão
-                  </Link>
-                  <span>•</span>
-                  <Link href="/privacidade" className="hover:text-blue-400 transition-colors" title="Política de Privacidade">
-                    Privacidade
-                  </Link>
-                  <span>•</span>
-                  <Link href="/termos" className="hover:text-amber-400 transition-colors" title="Termos de Serviço">
-                    Termos
-                  </Link>
+                  })}
                 </div>
+              </div>
+            )}
+
+            {/* Barra de Pesquisa */}
+            <div className="p-3 border-b border-slate-800/80">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  placeholder="Buscar por nome ou número..."
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                />
               </div>
             </div>
 
-            {/* COLUNA DIREITA: JANELA DO CHAT ATIVO (8 cols) */}
-            <div className="md:col-span-8 flex flex-col bg-slate-950/80">
-              {/* Header do Chat Ativo */}
-              <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
-                    {selectedContact.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase() || <User className="w-4 h-4" />}
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                      <span>{selectedContact.name}</span>
-                      <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        WhatsApp Ativo
-                      </span>
-                    </h3>
-                    <div className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
-                      <Phone className="w-3 h-3 text-slate-500" />
-                      <span>{selectedContact.phone}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botões de Ação do Chat */}
-                <div className="flex items-center gap-2">
+            {/* Lista com Scroll */}
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-800/50">
+              {filteredContacts.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 text-xs space-y-2">
+                  <p>Nenhuma conversa ativa no momento.</p>
                   <button
                     type="button"
-                    onClick={fetchMessagesAndContacts}
-                    disabled={isLoadingMessages}
-                    className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors"
-                    title="Atualizar mensagens"
+                    onClick={() => setShowNewContactModal(true)}
+                    className="inline-flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-medium transition-colors"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingMessages ? 'animate-spin' : ''}`} />
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Iniciar conversa</span>
                   </button>
                 </div>
-              </div>
+              ) : (
+                filteredContacts.map((contact) => {
+                  const isSelected = contact.phone === selectedContactPhone;
+                  const initials = contact.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase();
 
-              {/* Corpo de Mensagens (Thread) */}
-              <div className="flex-1 p-6 overflow-y-auto space-y-4 min-h-[400px] max-h-[520px]">
-                {!selectedContactPhone ? (
-                  <div className="py-20 text-center text-slate-500 text-xs space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mx-auto text-blue-400">
-                      <MessageSquare className="w-6 h-6" />
-                    </div>
-                    <p className="font-semibold text-slate-300 text-sm">Nenhuma conversa selecionada</p>
-                    <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
-                      Selecione uma conversa ou inicie um chat com qualquer número de WhatsApp.
-                    </p>
+                  return (
                     <button
-                      type="button"
-                      onClick={() => setShowNewContactModal(true)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors shadow-md shadow-blue-900/30"
+                      key={contact.id}
+                      onClick={() => setSelectedContactPhone(contact.phone)}
+                      className={`w-full p-3.5 text-left flex items-start gap-3 transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-600/10 border-l-4 border-l-blue-500 text-slate-100'
+                          : 'hover:bg-slate-900/40 text-slate-300'
+                      }`}
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Iniciar Nova Conversa</span>
-                    </button>
-                  </div>
-                ) : activeChatMessages.length === 0 ? (
-                  <div className="py-20 text-center text-slate-500 text-xs space-y-2">
-                    <MessageSquare className="w-8 h-8 text-slate-700 mx-auto" />
-                    <p className="font-semibold text-slate-400">Nenhuma mensagem com este contato ainda.</p>
-                    <p className="text-[11px] text-slate-600">
-                      Digite uma mensagem abaixo no campo de envio para disparar via WhatsApp Cloud API.
-                    </p>
-                  </div>
-                ) : (
-                  activeChatMessages.map((msg) => {
-                    const isInbound = msg.direction === 'inbound';
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex flex-col ${isInbound ? 'items-start' : 'items-end'}`}
-                      >
+                      {/* Avatar */}
+                      <div className="relative shrink-0">
                         <div
-                          className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-xs shadow-md ${isInbound
-                              ? 'bg-slate-900 text-slate-100 rounded-bl-sm border border-slate-800'
-                              : 'bg-blue-600 text-white rounded-br-sm'
-                            }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold ${
+                            isSelected
+                              ? 'bg-blue-600 text-white shadow-md shadow-blue-900/30'
+                              : 'bg-slate-800 text-slate-300'
+                          }`}
                         >
-                          <div className="text-[10px] font-semibold opacity-75 mb-1 flex items-center justify-between gap-3">
-                            <span>{isInbound ? msg.senderName || selectedContact.name : 'Bot automatas.tech'}</span>
-                            <span>
-                              {new Date(msg.timestamp).toLocaleTimeString([], {
+                          {initials || <User className="w-4 h-4" />}
+                        </div>
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950" />
+                      </div>
+
+                      {/* Informações */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="font-semibold text-xs truncate text-slate-200">
+                            {contact.name}
+                          </span>
+                          {contact.lastTimestamp && (
+                            <span className="text-[10px] text-slate-500 shrink-0">
+                              {new Date(contact.lastTimestamp).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
                               })}
                             </span>
-                          </div>
-                          <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                          <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-70">
-                            {!isInbound && <CheckCheck className="w-3 h-3 text-blue-200" />}
-                            <span className="capitalize">{msg.status}</span>
-                          </div>
+                          )}
                         </div>
+                        <div className="text-[11px] text-slate-500 font-mono mb-1 truncate">
+                          {contact.phone}
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate leading-snug">
+                          {contact.lastMessage || 'Clique para abrir a conversa'}
+                        </p>
                       </div>
-                    );
-                  })
-                )}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Input Bar do Chat */}
-              <div className="border-t border-slate-800 bg-slate-950">
-                {connectedAccounts.length > 1 && (
-                  <div className="px-4 pt-2 flex items-center justify-between text-[10px] text-slate-500">
-                    <span>
-                      Canal de envio:{' '}
-                      <strong className="text-slate-300 font-mono">
-                        {(() => {
-                          const targetId = activeChannelId !== 'all' ? activeChannelId : phoneId;
-                          const found = connectedAccounts.find((a) => a.phoneNumberId === targetId);
-                          return found?.displayPhoneNumber || `ID ••••${targetId.slice(-4)}`;
-                        })()}
-                      </strong>
-                    </span>
-                    {activeChannelId === 'all' && (
-                      <span className="text-amber-400/80">
-                        Selecione um número específico acima para alternar o remetente
-                      </span>
-                    )}
-                  </div>
-                )}
-                <form onSubmit={handleSendMessage} className="p-3.5 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={chatInputText}
-                    onChange={(e) => setChatInputText(e.target.value)}
-                    placeholder={`Digite uma mensagem para ${selectedContact.name}...`}
-                    className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isSending || !chatInputText.trim()}
-                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold text-xs transition-all shadow-md shadow-blue-900/30 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    {isSending ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <>
-                        <span>Enviar</span>
-                        <Send className="w-3.5 h-3.5" />
-                      </>
-                    )}
-                  </button>
-                </form>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+            {/* Rodapé da Coluna de Conversas com Links de Conformidade */}
+            <div className="p-3 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-[11px] text-slate-400">
+              <span className="flex items-center gap-1 text-slate-500">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span>Meta Compliant</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <Link href="/exclusao-dados" className="hover:text-red-400 transition-colors" title="Exclusão de Dados LGPD">
+                  Exclusão
+                </Link>
+                <span>•</span>
+                <Link href="/privacidade" className="hover:text-blue-400 transition-colors" title="Política de Privacidade">
+                  Privacidade
+                </Link>
+                <span>•</span>
+                <Link href="/termos" className="hover:text-amber-400 transition-colors" title="Termos de Serviço">
+                  Termos
+                </Link>
               </div>
             </div>
           </div>
+
+          {/* COLUNA DIREITA: JANELA DO CHAT ATIVO (8 cols) */}
+          <div className="md:col-span-8 flex flex-col bg-slate-950/80">
+            {/* Header do Chat Ativo */}
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+                  {selectedContact.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase() || <User className="w-4 h-4" />}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <span>{selectedContact.name}</span>
+                    <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      WhatsApp Ativo
+                    </span>
+                  </h3>
+                  <div className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+                    <Phone className="w-3 h-3 text-slate-500" />
+                    <span>{selectedContact.phone}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botões de Ação do Chat */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchMessagesAndContacts}
+                  disabled={isLoadingMessages}
+                  className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors"
+                  title="Atualizar mensagens"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingMessages ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Corpo de Mensagens (Thread) */}
+            <div className="flex-1 p-6 overflow-y-auto space-y-4 min-h-[400px] max-h-[520px]">
+              {!selectedContactPhone ? (
+                <div className="py-20 text-center text-slate-500 text-xs space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center mx-auto text-blue-400">
+                    <MessageSquare className="w-6 h-6" />
+                  </div>
+                  <p className="font-semibold text-slate-300 text-sm">Nenhuma conversa selecionada</p>
+                  <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+                    Selecione uma conversa ou inicie um chat com qualquer número de WhatsApp.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewContactModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors shadow-md shadow-blue-900/30"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Iniciar Nova Conversa</span>
+                  </button>
+                </div>
+              ) : activeChatMessages.length === 0 ? (
+                <div className="py-20 text-center text-slate-500 text-xs space-y-2">
+                  <MessageSquare className="w-8 h-8 text-slate-700 mx-auto" />
+                  <p className="font-semibold text-slate-400">Nenhuma mensagem com este contato ainda.</p>
+                  <p className="text-[11px] text-slate-600">
+                    Digite uma mensagem abaixo no campo de envio para disparar via WhatsApp Cloud API.
+                  </p>
+                </div>
+              ) : (
+                activeChatMessages.map((msg) => {
+                  const isInbound = msg.direction === 'inbound';
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${isInbound ? 'items-start' : 'items-end'}`}
+                    >
+                      <div
+                        className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-xs shadow-md ${
+                          isInbound
+                            ? 'bg-slate-900 text-slate-100 rounded-bl-sm border border-slate-800'
+                            : 'bg-blue-600 text-white rounded-br-sm'
+                        }`}
+                      >
+                        <div className="text-[10px] font-semibold opacity-75 mb-1 flex items-center justify-between gap-3">
+                          <span>{isInbound ? msg.senderName || selectedContact.name : 'Bot automatas.tech'}</span>
+                          <span>
+                            {new Date(msg.timestamp).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                        <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-70">
+                          {!isInbound && <CheckCheck className="w-3 h-3 text-blue-200" />}
+                          <span className="capitalize">{msg.status}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input Bar do Chat */}
+            <div className="border-t border-slate-800 bg-slate-950">
+              {connectedAccounts.length > 1 && (
+                <div className="px-4 pt-2 flex items-center justify-between text-[10px] text-slate-500">
+                  <span>
+                    Canal de envio:{' '}
+                    <strong className="text-slate-300 font-mono">
+                      {(() => {
+                        const targetId = activeChannelId !== 'all' ? activeChannelId : phoneId;
+                        const found = connectedAccounts.find((a) => a.phoneNumberId === targetId);
+                        return found?.displayPhoneNumber || `ID ••••${targetId.slice(-4)}`;
+                      })()}
+                    </strong>
+                  </span>
+                  {activeChannelId === 'all' && (
+                    <span className="text-amber-400/80">
+                      Selecione um número específico acima para alternar o remetente
+                    </span>
+                  )}
+                </div>
+              )}
+              <form onSubmit={handleSendMessage} className="p-3.5 flex items-center gap-2">
+              <input
+                type="text"
+                value={chatInputText}
+                onChange={(e) => setChatInputText(e.target.value)}
+                placeholder={`Digite uma mensagem para ${selectedContact.name}...`}
+                className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={isSending || !chatInputText.trim()}
+                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-semibold text-xs transition-all shadow-md shadow-blue-900/30 flex items-center gap-1.5 cursor-pointer"
+              >
+                {isSending ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <span>Enviar</span>
+                    <Send className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            </form>
+            </div>
+          </div>
+        </div>
         )}
       </main>
 
@@ -2333,10 +2350,11 @@ export default function AppPage() {
                 <button
                   type="button"
                   onClick={() => setPrivacyMode(!privacyMode)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${privacyMode
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                    privacyMode
                       ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
                       : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                    }`}
+                  }`}
                   title={privacyMode ? 'Modo Gravação ativo: dados mascarados' : 'Clique para ocultar dados para gravação'}
                 >
                   {privacyMode ? <EyeOff className="w-3.5 h-3.5 text-emerald-400" /> : <Eye className="w-3.5 h-3.5" />}
@@ -2582,10 +2600,11 @@ export default function AppPage() {
                       return (
                         <div
                           key={acc.phoneNumberId}
-                          className={`p-3 rounded-xl border text-xs space-y-1.5 transition-colors ${isChannelActive
+                          className={`p-3 rounded-xl border text-xs space-y-1.5 transition-colors ${
+                            isChannelActive
                               ? 'bg-blue-950/30 border-blue-500/40'
                               : 'bg-slate-900/60 border-slate-800'
-                            }`}
+                          }`}
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
@@ -2632,10 +2651,11 @@ export default function AppPage() {
                                   handleSelectChannel(acc.phoneNumberId);
                                   setShowMetaSettingsModal(false);
                                 }}
-                                className={`px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer transition-colors ${isChannelActive
+                                className={`px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer transition-colors ${
+                                  isChannelActive
                                     ? 'bg-blue-600 text-white'
                                     : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-                                  }`}
+                                }`}
                               >
                                 {isChannelActive ? 'Ativo no Chat' : 'Usar no Chat'}
                               </button>
