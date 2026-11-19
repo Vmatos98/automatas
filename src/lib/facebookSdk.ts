@@ -385,10 +385,11 @@ export function launchWhatsAppEmbeddedSignup(options: {
         } else {
           let errorText = 'Fluxo de Onboarding de WhatsApp cancelado pelo usuário.';
           if (capturedEmbeddedData?.error_message) {
-            errorText = `Erro no Onboarding WhatsApp: ${capturedEmbeddedData.error_message}${capturedEmbeddedData.current_step
+            errorText = `Erro no Onboarding WhatsApp: ${capturedEmbeddedData.error_message}${
+              capturedEmbeddedData.current_step
                 ? ` (etapa: ${capturedEmbeddedData.current_step})`
                 : ''
-              }`;
+            }`;
           } else if (capturedEmbeddedData?.current_step) {
             errorText = `Fluxo de Onboarding de WhatsApp cancelado na etapa "${capturedEmbeddedData.current_step}".`;
           }
