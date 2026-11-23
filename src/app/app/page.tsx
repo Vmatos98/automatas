@@ -52,6 +52,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+import HubProjectsPanel from '@/components/HubProjectsPanel';
 
 interface AdminUser {
   id: string;
@@ -170,7 +171,7 @@ export default function AppPage() {
   const [newContactPhone, setNewContactPhone] = useState('');
 
   // Controle de Visualização e Papel de Acesso (Admin vs Atendente)
-  const [currentView, setCurrentView] = useState<'chat' | 'users'>('chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'users' | 'projects'>('chat');
   const [userRole, setUserRole] = useState<'admin' | 'user'>('admin');
   const isAdmin = userRole === 'admin';
 
@@ -793,7 +794,7 @@ export default function AppPage() {
     const nextRole = userRole === 'admin' ? 'user' : 'admin';
     setUserRole(nextRole);
     localStorage.setItem('automatas_app_role', nextRole);
-    if (nextRole === 'user' && currentView === 'users') {
+    if (nextRole === 'user' && (currentView === 'users' || currentView === 'projects')) {
       setCurrentView('chat');
     }
     setFeedbackMessage({
@@ -1236,6 +1237,20 @@ export default function AppPage() {
 
                 <button
                   type="button"
+                  onClick={() => setCurrentView('projects')}
+                  className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${
+                    currentView === 'projects'
+                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/30'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title="Criar projetos externos e gerar API Keys do Hub WhatsApp"
+                >
+                  <Layers className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Projetos & API</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setShowMetaSettingsModal(true)}
                   className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5"
                   title="Visualizar credenciais de webhook e endpoints Meta (Exclusivo Administrador)"
@@ -1440,6 +1455,19 @@ export default function AppPage() {
                 >
                   <Users className="w-4 h-4 text-blue-400" />
                   <span>Gerenciar Contas & Usuários</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentView('projects');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                    currentView === 'projects' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <Layers className="w-4 h-4 text-blue-400" />
+                  <span>Projetos & API Keys</span>
                 </button>
                 <button
                   type="button"
@@ -1840,6 +1868,8 @@ export default function AppPage() {
               </div>
             </div>
           </div>
+        ) : currentView === 'projects' && isAdmin ? (
+          <HubProjectsPanel />
         ) : (
           /* ======================================================== */
           /* TELA PADRÃO: CHAT & ATENDIMENTO WHATSAPP (2 COLUNAS)     */
