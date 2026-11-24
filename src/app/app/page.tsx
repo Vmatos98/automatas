@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
   initFacebookSdk,
-  loginWithFacebook,
   launchWhatsAppEmbeddedSignup,
   getFacebookUserProfile,
   FacebookUserProfile,
@@ -51,8 +50,20 @@ import {
   Mail,
   Eye,
   EyeOff,
+  Instagram,
+  KeyRound,
+  ChevronDown,
+  DollarSign,
 } from 'lucide-react';
 import HubProjectsPanel from '@/components/HubProjectsPanel';
+import InstagramWorkspacePanel from '@/components/InstagramWorkspacePanel';
+import HubClientsDirectoryPanel from '@/components/HubClientsDirectoryPanel';
+import ClientProfilePanel from '@/components/ClientProfilePanel';
+import FinancialDashboardPanel, {
+  BillingCycle,
+  PlanId,
+  PublicSaasAccount,
+} from '@/components/FinancialDashboardPanel';
 
 interface AdminUser {
   id: string;
@@ -122,8 +133,21 @@ interface MetaStatus {
 }
 
 export default function AppPage() {
-  // Estado de Autenticação
+  // Estado de Autenticação (Admin corporativo, Agência/Conta SaaS ou Projeto Individual JWT)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<'admin' | 'agency' | 'client'>('admin');
+  const [loginTab, setLoginTab] = useState<'email' | 'jwt' | 'signup'>('email');
+  const [jwtInput, setJwtInput] = useState('');
+  const [projectJwt, setProjectJwt] = useState('');
+  const [clientProject, setClientProject] = useState<{ id: string; slug: string; name: string } | null>(null);
+  const [accountJwt, setAccountJwt] = useState('');
+  const [agencyAccount, setAgencyAccount] = useState<PublicSaasAccount | null>(null);
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regCpfCnpj, setRegCpfCnpj] = useState('');
+  const [regPlan, setRegPlan] = useState<PlanId>('omnichannel');
+  const [regCycle, setRegCycle] = useState<BillingCycle>('MONTHLY');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -145,7 +169,6 @@ export default function AppPage() {
   const [metaAppId, setMetaAppId] = useState<string>(process.env.NEXT_PUBLIC_META_APP_ID || '');
   const [metaConfigId, setMetaConfigId] = useState<string>(process.env.NEXT_PUBLIC_META_CONFIG_ID || '');
   const [fbUserProfile, setFbUserProfile] = useState<FacebookUserProfile | null>(null);
-  const [isFbLoggingIn, setIsFbLoggingIn] = useState<boolean>(false);
   const [isEmbeddedSigningUp, setIsEmbeddedSigningUp] = useState<boolean>(false);
   const [showAppIdModal, setShowAppIdModal] = useState<boolean>(false);
   const [tempAppId, setTempAppId] = useState<string>('');
@@ -170,10 +193,19 @@ export default function AppPage() {
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
 
-  // Controle de Visualização e Papel de Acesso (Admin vs Atendente)
-  const [currentView, setCurrentView] = useState<'chat' | 'users' | 'projects'>('chat');
+  // Controle de Visualização e Papel de Acesso (Admin vs Agência vs Cliente JWT)
+  const [currentView, setCurrentView] = useState<'chat' | 'instagram' | 'projects' | 'finance' | 'profile' | 'users'>('chat');
+  const [adminAccountsSubTab, setAdminAccountsSubTab] = useState<'clients' | 'leads'>('clients');
   const [userRole, setUserRole] = useState<'admin' | 'user'>('admin');
-  const isAdmin = userRole === 'admin';
+  const isAdmin = authMode === 'admin' && userRole === 'admin';
+  const isPreviewingClient = authMode === 'admin' && userRole === 'user';
+  const agencyAllowedChannels =
+    authMode === 'agency' && agencyAccount
+      ? agencyAccount.billing.allowedChannels
+      : (['whatsapp', 'instagram'] as Array<'whatsapp' | 'instagram'>);
+  const canAccessWhatsapp = authMode !== 'agency' || agencyAllowedChannels.includes('whatsapp');
+  const canAccessInstagram = authMode !== 'agency' || agencyAllowedChannels.includes('instagram');
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   // Gestão de Usuários e Contas (Exclusivo Admin)
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
@@ -213,22 +245,66 @@ export default function AppPage() {
 
   // Inicializar autenticação e papel salvos + Meta credentials
   useEffect(() => {
+    const savedAccountJwt = localStorage.getItem('automatas_account_jwt');
+    const savedProjectJwt = localStorage.getItem('automatas_project_jwt');
     const savedAuth = localStorage.getItem('automatas_app_auth');
     const savedRole = localStorage.getItem('automatas_app_role') as 'admin' | 'user' | null;
     const savedEmail = localStorage.getItem('automatas_app_email');
     const savedAuditor = localStorage.getItem('automatas_app_auditor_mode');
 
-    // Valida se a sessão salva pertence a uma conta oficial autorizada
-    const validEmails = ['reviewer@automatas.tech', 'admin@automatas.tech', 'contato@automatas.tech'];
-    const isFacebookSession = savedEmail && (savedEmail.includes('@facebook.user') || savedEmail.includes('facebook'));
-
-    if (savedAuth === 'true') {
-      if (savedEmail && (validEmails.includes(savedEmail.toLowerCase()) || isFacebookSession)) {
+    // 0. Se houver JWT de Conta / Agência salvo, autentica em modo Agência
+    if (savedAccountJwt && savedAccountJwt.split('.').length === 3) {
+      fetch('/api/billing?scope=me', {
+        headers: { 'x-account-jwt': savedAccountJwt },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.success && data?.account) {
+            setAuthMode('agency');
+            setAccountJwt(savedAccountJwt);
+            setAgencyAccount(data.account);
+            setUserRole('user');
+            setIsAuthenticated(true);
+            setCurrentView('projects');
+          } else {
+            localStorage.removeItem('automatas_account_jwt');
+          }
+        })
+        .catch(() => {});
+    } else if (savedProjectJwt && savedProjectJwt.split('.').length === 3) {
+      // 1. Se houver JWT de Projeto salvo, valida e autentica em modo Cliente isolado
+      fetch(`/api/hub/connect?token=${encodeURIComponent(savedProjectJwt)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.success && data?.project) {
+            setAuthMode('client');
+            setProjectJwt(savedProjectJwt);
+            setClientProject({
+              id: data.project.id,
+              slug: data.project.slug,
+              name: data.project.name,
+            });
+            setUserRole('user');
+            setIsAuthenticated(true);
+            if (data.appId) {
+              setMetaAppId(data.appId);
+              initFacebookSdk(data.appId);
+            }
+            if (data.configId) setMetaConfigId(data.configId);
+          } else {
+            localStorage.removeItem('automatas_project_jwt');
+          }
+        })
+        .catch(() => {});
+    } else if (savedAuth === 'true') {
+      // 2. Sessão corporativa/admin: apenas e-mails oficiais autorizados (nunca Facebook público)
+      const validEmails = ['reviewer@automatas.tech', 'admin@automatas.tech', 'contato@automatas.tech'];
+      if (savedEmail && validEmails.includes(savedEmail.toLowerCase())) {
+        setAuthMode('admin');
         setIsAuthenticated(true);
         if (savedRole) setUserRole(savedRole);
         if (savedEmail) setEmail(savedEmail);
       } else {
-        // Limpa sessões legadas não autorizadas
         localStorage.removeItem('automatas_app_auth');
         localStorage.removeItem('automatas_app_role');
         localStorage.removeItem('automatas_app_email');
@@ -273,66 +349,68 @@ export default function AppPage() {
       initFacebookSdk(savedAppId);
     }
 
-    // Consultar contas conectadas e sessão ativa no backend
-    fetch('/api/meta/auth')
-      .then((res) => res.json())
-      .then((data) => {
-        const accountsList: ConnectedWhatsAppAccount[] = Array.isArray(data.accounts)
-          ? data.accounts
-          : [];
-        if (accountsList.length > 0) {
-          setConnectedAccounts(accountsList);
-        }
-
-        const matchedAccount =
-          savedActiveChannel && savedActiveChannel !== 'all'
-            ? accountsList.find((a) => a.phoneNumberId === savedActiveChannel)
-            : undefined;
-        const activeTarget = matchedAccount || accountsList[0];
-
-        if (activeTarget) {
-          setPhoneId(activeTarget.phoneNumberId);
-          setDisplayPhoneNumber(
-            activeTarget.displayPhoneNumber || `+${activeTarget.phoneNumberId}`
-          );
-          if (activeTarget.wabaId) setWabaId(activeTarget.wabaId);
-          if (activeTarget.businessId) setBusinessId(activeTarget.businessId);
-          setIsCoexistence(Boolean(activeTarget.isCoexistence));
-        } else if (data.session) {
-          if (data.session.phoneNumberId) {
-            setPhoneId(data.session.phoneNumberId);
-            setDisplayPhoneNumber(data.session.displayPhoneNumber || `+${data.session.phoneNumberId}`);
-          } else if (data.session.displayPhoneNumber) {
-            setDisplayPhoneNumber(data.session.displayPhoneNumber);
+    // Consultar contas conectadas e sessão ativa no backend (somente se não for cliente JWT nem agência)
+    if (!savedProjectJwt && !savedAccountJwt) {
+      fetch('/api/meta/auth')
+        .then((res) => res.json())
+        .then((data) => {
+          const accountsList: ConnectedWhatsAppAccount[] = Array.isArray(data.accounts)
+            ? data.accounts
+            : [];
+          if (accountsList.length > 0) {
+            setConnectedAccounts(accountsList);
           }
-          if (data.session.wabaId) setWabaId(data.session.wabaId);
-          if (data.session.businessId) {
-            setBusinessId(data.session.businessId);
-            localStorage.setItem('automatas_meta_business_id', data.session.businessId);
-          }
-          if (typeof data.session.isCoexistence === 'boolean') {
-            setIsCoexistence(data.session.isCoexistence);
-            localStorage.setItem('automatas_meta_coexistence', String(data.session.isCoexistence));
-          }
-        }
 
-        if (data.session?.userName && !savedUser) {
-          setFbUserProfile({
-            id: data.session.userId || 'meta-user',
-            name: data.session.userName,
-            email: data.session.userEmail,
-            pictureUrl: data.session.userPicture,
-          });
-        }
-        if (!savedAppId && data.appId) {
-          setMetaAppId(data.appId);
-          initFacebookSdk(data.appId);
-        }
-        if (!savedConfigId && data.configId) {
-          setMetaConfigId(data.configId);
-        }
-      })
-      .catch(() => {});
+          const matchedAccount =
+            savedActiveChannel && savedActiveChannel !== 'all'
+              ? accountsList.find((a) => a.phoneNumberId === savedActiveChannel)
+              : undefined;
+          const activeTarget = matchedAccount || accountsList[0];
+
+          if (activeTarget) {
+            setPhoneId(activeTarget.phoneNumberId);
+            setDisplayPhoneNumber(
+              activeTarget.displayPhoneNumber || `+${activeTarget.phoneNumberId}`
+            );
+            if (activeTarget.wabaId) setWabaId(activeTarget.wabaId);
+            if (activeTarget.businessId) setBusinessId(activeTarget.businessId);
+            setIsCoexistence(Boolean(activeTarget.isCoexistence));
+          } else if (data.session) {
+            if (data.session.phoneNumberId) {
+              setPhoneId(data.session.phoneNumberId);
+              setDisplayPhoneNumber(data.session.displayPhoneNumber || `+${data.session.phoneNumberId}`);
+            } else if (data.session.displayPhoneNumber) {
+              setDisplayPhoneNumber(data.session.displayPhoneNumber);
+            }
+            if (data.session.wabaId) setWabaId(data.session.wabaId);
+            if (data.session.businessId) {
+              setBusinessId(data.session.businessId);
+              localStorage.setItem('automatas_meta_business_id', data.session.businessId);
+            }
+            if (typeof data.session.isCoexistence === 'boolean') {
+              setIsCoexistence(data.session.isCoexistence);
+              localStorage.setItem('automatas_meta_coexistence', String(data.session.isCoexistence));
+            }
+          }
+
+          if (data.session?.userName && !savedUser) {
+            setFbUserProfile({
+              id: data.session.userId || 'meta-user',
+              name: data.session.userName,
+              email: data.session.userEmail,
+              pictureUrl: data.session.userPicture,
+            });
+          }
+          if (!savedAppId && data.appId) {
+            setMetaAppId(data.appId);
+            initFacebookSdk(data.appId);
+          }
+          if (!savedConfigId && data.configId) {
+            setMetaConfigId(data.configId);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const handleSaveAppCredentials = (newAppId: string, newConfigId: string) => {
@@ -350,59 +428,53 @@ export default function AppPage() {
     });
   };
 
-  const handleFacebookLogin = async () => {
+  // Login isolado de Cliente via Chave JWT do Projeto
+  const handleJwtLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoginError('');
-    if (!metaAppId) {
-      setTempAppId(metaAppId);
-      setTempConfigId(metaConfigId);
-      setShowAppIdModal(true);
+    const clean = jwtInput.trim();
+    if (!clean) {
+      setLoginError('Cole a Chave JWT de Login fornecida para o seu projeto.');
       return;
     }
 
-    setIsFbLoggingIn(true);
+    setIsLoggingIn(true);
     try {
-      await initFacebookSdk(metaAppId);
-      const res = await loginWithFacebook();
-
-      if (res.status === 'connected' && res.authResponse) {
-        const profile = await getFacebookUserProfile();
-        if (profile) {
-          setFbUserProfile(profile);
-          localStorage.setItem('automatas_meta_user', JSON.stringify(profile));
-          setEmail(profile.email || `${profile.id}@facebook.user`);
-        }
-
-        // Registrar sessão no backend
-        await fetch('/api/meta/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            authType: 'facebook_login',
-            userId: profile?.id || res.authResponse.userID,
-            userName: profile?.name || 'Usuário Facebook Login',
-            userEmail: profile?.email || null,
-            userPicture: profile?.pictureUrl || null,
-            accessToken: res.authResponse.accessToken,
-          }),
-        });
-
-        setIsAuthenticated(true);
-        setUserRole('admin');
-        localStorage.setItem('automatas_app_auth', 'true');
-        localStorage.setItem('automatas_app_role', 'admin');
-        localStorage.setItem('automatas_app_email', profile?.email || `${profile?.id || 'admin'}@facebook.user`);
-        setFeedbackMessage({
-          text: `Autenticado com sucesso via Facebook como ${profile?.name || 'Administrador'}!`,
-          type: 'success',
-        });
-      } else {
-        setLoginError(res.error || 'Não foi possível concluir o Login com o Facebook. Verifique as permissões.');
+      const res = await fetch(`/api/hub/connect?token=${encodeURIComponent(clean)}`);
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.project) {
+        setLoginError(data.error || 'Chave JWT inválida, revogada ou projeto pausado.');
+        return;
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setLoginError(msg);
+
+      setAuthMode('client');
+      setProjectJwt(clean);
+      setClientProject({
+        id: data.project.id,
+        slug: data.project.slug,
+        name: data.project.name,
+      });
+      setUserRole('user');
+      setIsAuditorMode(false);
+      setIsAuthenticated(true);
+      setCurrentView('chat');
+      localStorage.setItem('automatas_project_jwt', clean);
+      localStorage.removeItem('automatas_app_auth');
+
+      if (data.appId) {
+        setMetaAppId(data.appId);
+        initFacebookSdk(data.appId);
+      }
+      if (data.configId) setMetaConfigId(data.configId);
+      setJwtInput('');
+      setFeedbackMessage({
+        text: `Conectado ao projeto "${data.project.name}" com acesso isolado!`,
+        type: 'success',
+      });
+    } catch {
+      setLoginError('Falha ao validar a Chave JWT no servidor.');
     } finally {
-      setIsFbLoggingIn(false);
+      setIsLoggingIn(false);
     }
   };
 
@@ -481,24 +553,37 @@ export default function AppPage() {
               mergedEventData.event !== 'FINISH_ONLY_WABA')
         );
 
-        const authRes = await fetch('/api/meta/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            authType: 'embedded_signup',
-            userId: profile?.id || res.authResponse.userID,
-            userName: profile?.name || 'WhatsApp Business Integrado',
-            userEmail: profile?.email || null,
-            code: res.authResponse.code,
-            accessToken: res.authResponse.accessToken,
-            phoneNumberId: resolvedPhoneId,
-            wabaId: resolvedWabaId,
-            businessId: resolvedBusinessId,
-            isCoexistence: detectedCoexistence,
-            onboardingMode: detectedCoexistence ? 'coexistence' : 'standard',
-            embeddedEvent: mergedEventData.event,
-          }),
-        });
+        const onboardingBody = {
+          authType: 'embedded_signup',
+          userId: profile?.id || res.authResponse.userID,
+          userName: profile?.name || 'WhatsApp Business Integrado',
+          userEmail: profile?.email || null,
+          code: res.authResponse.code,
+          accessToken: res.authResponse.accessToken,
+          phoneNumberId: resolvedPhoneId,
+          wabaId: resolvedWabaId,
+          businessId: resolvedBusinessId,
+          isCoexistence: detectedCoexistence,
+          onboardingMode: detectedCoexistence ? 'coexistence' : 'standard',
+          embeddedEvent: mergedEventData.event,
+        };
+
+        const authRes =
+          authMode === 'client' && projectJwt
+            ? await fetch('/api/hub/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  token: projectJwt,
+                  channel: 'whatsapp',
+                  ...onboardingBody,
+                }),
+              })
+            : await fetch('/api/meta/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(onboardingBody),
+              });
 
         const authData = await authRes.json().catch(() => ({}));
         if (!authRes.ok || !authData?.success) {
@@ -662,6 +747,105 @@ export default function AppPage() {
   const fetchMessagesAndContacts = useCallback(async () => {
     setIsLoadingMessages(true);
     try {
+      if (authMode === 'agency' && accountJwt) {
+        const res = await fetch('/api/billing?scope=workspace', {
+          headers: { 'x-account-jwt': accountJwt },
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.account) setAgencyAccount(data.account);
+          const waAccounts: ConnectedWhatsAppAccount[] = Array.isArray(data.whatsapp?.accounts)
+            ? data.whatsapp.accounts
+            : [];
+          const waMessages: MessageItem[] = Array.isArray(data.whatsapp?.messages)
+            ? data.whatsapp.messages
+            : [];
+          setConnectedAccounts(waAccounts);
+          setMessages(waMessages);
+          if (waAccounts[0]) {
+            setPhoneId(waAccounts[0].phoneNumberId);
+            setDisplayPhoneNumber(waAccounts[0].displayPhoneNumber || `+${waAccounts[0].phoneNumberId}`);
+            setIsConnected(true);
+          }
+          const byPhone = new Map<string, ContactItem>();
+          for (const m of waMessages) {
+            const peer = m.direction === 'outbound' ? m.to || m.from : m.from;
+            const clean = String(peer || '').replace(/\D/g, '');
+            if (!clean) continue;
+            if (!byPhone.has(clean)) {
+              byPhone.set(clean, {
+                id: `ag_c_${clean}`,
+                name: m.senderName || `Contato +${clean}`,
+                phone: clean,
+                lastMessage: m.text,
+                lastTimestamp: m.timestamp,
+              });
+            }
+          }
+          const contactList = Array.from(byPhone.values());
+          setContacts(contactList);
+          setSelectedContactPhone((prev) => (!prev && contactList.length > 0 ? contactList[0].phone : prev));
+        }
+        return;
+      }
+
+      if (authMode === 'client' && projectJwt) {
+        const channelParam =
+          activeChannelId && activeChannelId !== 'all'
+            ? `?phoneNumberId=${encodeURIComponent(activeChannelId)}`
+            : '';
+        const res = await fetch(`/api/hub/dashboard${channelParam}`, {
+          headers: { 'x-project-jwt': projectJwt },
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const waAccounts: ConnectedWhatsAppAccount[] = Array.isArray(data.whatsapp?.accounts)
+            ? data.whatsapp.accounts
+            : [];
+          const waMessages: MessageItem[] = Array.isArray(data.whatsapp?.messages)
+            ? data.whatsapp.messages
+            : [];
+          setConnectedAccounts(waAccounts);
+          setMessages(waMessages);
+          if (waAccounts[0]) {
+            setPhoneId(waAccounts[0].phoneNumberId);
+            setDisplayPhoneNumber(waAccounts[0].displayPhoneNumber || `+${waAccounts[0].phoneNumberId}`);
+            setIsCoexistence(Boolean(waAccounts[0].isCoexistence));
+            setIsConnected(true);
+          }
+
+          // Agrupar contatos a partir das mensagens do projeto
+          const byPhone = new Map<string, ContactItem>();
+          for (const m of waMessages) {
+            const peer = m.direction === 'outbound' ? m.to || m.from : m.from;
+            const clean = String(peer || '').replace(/\D/g, '');
+            if (!clean) continue;
+            if (!byPhone.has(clean)) {
+              byPhone.set(clean, {
+                id: `proj_c_${clean}`,
+                name: m.senderName || `Contato +${clean}`,
+                phone: clean,
+                lastMessage: m.text,
+                lastTimestamp: m.timestamp,
+              });
+            }
+          }
+          const contactList = Array.from(byPhone.values());
+          setContacts((prev) => {
+            const pending = prev.filter(
+              (p) =>
+                (p.id.startsWith('temp_') || p.id.startsWith('lead_')) &&
+                !contactList.some((c) => c.phone === p.phone)
+            );
+            return [...pending, ...contactList];
+          });
+          setSelectedContactPhone((prev) => (!prev && contactList.length > 0 ? contactList[0].phone : prev));
+        }
+        return;
+      }
+
       const channelParam =
         activeChannelId && activeChannelId !== 'all'
           ? `&phoneNumberId=${encodeURIComponent(activeChannelId)}`
@@ -706,7 +890,7 @@ export default function AppPage() {
     } finally {
       setIsLoadingMessages(false);
     }
-  }, [isAuditorMode, activeChannelId]);
+  }, [isAuditorMode, activeChannelId, authMode, projectJwt, accountJwt]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -746,6 +930,30 @@ export default function AppPage() {
       }
 
       // Autenticação autorizada com sucesso pelo servidor
+      if (data.user?.role === 'agency' && data.accountJwt && data.account) {
+        setAuthMode('agency');
+        setAccountJwt(data.accountJwt);
+        setAgencyAccount(data.account);
+        setProjectJwt('');
+        setClientProject(null);
+        setUserRole('user');
+        setIsAuditorMode(false);
+        setIsAuthenticated(true);
+        setCurrentView('projects');
+        localStorage.setItem('automatas_account_jwt', data.accountJwt);
+        localStorage.removeItem('automatas_project_jwt');
+        localStorage.removeItem('automatas_app_auth');
+        setLoginError('');
+        return;
+      }
+
+      setAuthMode('admin');
+      setProjectJwt('');
+      setClientProject(null);
+      setAccountJwt('');
+      setAgencyAccount(null);
+      localStorage.removeItem('automatas_project_jwt');
+      localStorage.removeItem('automatas_account_jwt');
       setIsAuthenticated(true);
       const role: 'admin' | 'user' = data.user.role || 'admin';
       const isAuditor = Boolean(data.user.isAuditorMode);
@@ -765,9 +973,68 @@ export default function AppPage() {
     }
   };
 
+  // Autocadastro de nova Conta / Agência escolhendo Plano (Mensal ou Anual -20%)
+  const handleRegisterAgency = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    if (!regName.trim() || !regEmail.trim() || regPassword.trim().length < 4) {
+      setLoginError('Preencha nome, e-mail válido e senha (mín. 4 caracteres).');
+      return;
+    }
+
+    setIsLoggingIn(true);
+    try {
+      const res = await fetch('/api/billing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register',
+          name: regName.trim(),
+          email: regEmail.trim(),
+          password: regPassword.trim(),
+          cpfCnpj: regCpfCnpj.trim() || undefined,
+          planId: regPlan,
+          billingCycle: regCycle,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.accountJwt) {
+        setLoginError(data.error || 'Não foi possível criar a conta.');
+        return;
+      }
+
+      setAuthMode('agency');
+      setAccountJwt(data.accountJwt);
+      setAgencyAccount(data.account);
+      setUserRole('user');
+      setIsAuditorMode(false);
+      setIsAuthenticated(true);
+      setCurrentView('finance');
+      localStorage.setItem('automatas_account_jwt', data.accountJwt);
+      localStorage.removeItem('automatas_project_jwt');
+      localStorage.removeItem('automatas_app_auth');
+      setFeedbackMessage({
+        text: `Conta "${data.account.name}" criada! Finalize sua assinatura Asaas no Financeiro ou comece a criar projetos.`,
+        type: 'success',
+      });
+    } catch {
+      setLoginError('Falha ao conectar com o servidor de cadastro.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setAuthMode('admin');
+    setProjectJwt('');
+    setClientProject(null);
+    setAccountJwt('');
+    setAgencyAccount(null);
     setIsAuditorMode(false);
+    setShowMoreMenu(false);
+    localStorage.removeItem('automatas_project_jwt');
+    localStorage.removeItem('automatas_account_jwt');
     localStorage.removeItem('automatas_app_auth');
     localStorage.removeItem('automatas_app_role');
     localStorage.removeItem('automatas_app_email');
@@ -789,16 +1056,16 @@ export default function AppPage() {
     });
   };
 
-  // Alternador rápido de visão para testes de auditoria
+  // Alternador rápido de visão (Admin vs Simulação de Visão Cliente)
   const toggleRoleView = () => {
     const nextRole = userRole === 'admin' ? 'user' : 'admin';
     setUserRole(nextRole);
     localStorage.setItem('automatas_app_role', nextRole);
-    if (nextRole === 'user' && (currentView === 'users' || currentView === 'projects')) {
-      setCurrentView('chat');
+    if (nextRole === 'user' && currentView === 'users') {
+      setCurrentView('finance');
     }
     setFeedbackMessage({
-      text: `Visão alternada para: ${nextRole === 'admin' ? 'Administrador (Visão Completa)' : 'Atendente (Visão Segura Sem Configurações Meta)'}`,
+      text: `Visão alternada para: ${nextRole === 'admin' ? 'Administrador (Visão Completa Isenta)' : 'Cliente / Agência (Preview com Projetos, Financeiro e Minha Conta)'}`,
       type: 'success',
     });
   };
@@ -915,19 +1182,34 @@ export default function AppPage() {
     const sendFromPhoneId = activeChannelId !== 'all' ? activeChannelId : phoneId;
 
     try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auditor-mode': isAuditorMode ? 'true' : 'false',
-        },
-        body: JSON.stringify({
-          to: selectedContactPhone,
-          text: messageText,
-          phoneNumberId: sendFromPhoneId,
-          isAuditorMode,
-        }),
-      });
+      const res =
+        authMode === 'client' && projectJwt
+          ? await fetch('/api/hub/dashboard', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-project-jwt': projectJwt,
+              },
+              body: JSON.stringify({
+                action: 'send-whatsapp',
+                to: selectedContactPhone,
+                text: messageText,
+                phoneNumberId: sendFromPhoneId,
+              }),
+            })
+          : await fetch('/api/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-auditor-mode': isAuditorMode ? 'true' : 'false',
+              },
+              body: JSON.stringify({
+                to: selectedContactPhone,
+                text: messageText,
+                phoneNumberId: sendFromPhoneId,
+                isAuditorMode,
+              }),
+            });
 
       let data: any = {};
       try {
@@ -1055,17 +1337,66 @@ export default function AppPage() {
         </header>
 
         <main className="flex-1 flex items-center justify-center px-4 py-12">
-          <div className="w-full max-w-md p-8 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-            <div className="text-center mb-8">
+          <div className="w-full max-w-md p-7 rounded-3xl bg-slate-900/85 border border-slate-800 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+            <div className="text-center mb-6">
               <div className="w-14 h-14 rounded-2xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-center mx-auto mb-4 text-blue-400">
                 <Lock className="w-7 h-7" />
               </div>
               <h1 className="text-2xl font-bold tracking-tight text-slate-100">
-                Acesso ao CRM & Chat
+                Automatas Omnichannel Hub
               </h1>
               <p className="text-xs text-slate-400 mt-1.5">
-                Painel Integrado WhatsApp Business Cloud API
+                Acesso privado para projetos autorizados (WhatsApp &amp; Instagram Meta API)
               </p>
+            </div>
+
+            {/* Seletor de Modo de Login: E-mail (Admin/Agência) | Criar Conta | Chave JWT */}
+            <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-950 border border-slate-800 mb-5">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginTab('email');
+                  setLoginError('');
+                }}
+                className={`py-2 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                  loginTab === 'email'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5 shrink-0" />
+                <span>Entrar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginTab('signup');
+                  setLoginError('');
+                }}
+                className={`py-2 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                  loginTab === 'signup'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span>Planos / Criar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginTab('jwt');
+                  setLoginError('');
+                }}
+                className={`py-2 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                  loginTab === 'jwt'
+                    ? 'bg-slate-800 text-white border border-slate-700'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <KeyRound className="w-3.5 h-3.5 shrink-0" />
+                <span>Chave JWT</span>
+              </button>
             </div>
 
             {loginError && (
@@ -1075,67 +1406,176 @@ export default function AppPage() {
               </div>
             )}
 
-            {/* BOTÃO OFICIAL: LOGIN COM O FACEBOOK */}
-            <div className="mb-5">
-              <button
-                type="button"
-                onClick={handleFacebookLogin}
-                disabled={isFbLoggingIn}
-                className="w-full py-3 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-semibold text-sm transition-all shadow-lg shadow-blue-900/40 flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed group active:scale-[0.99]"
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-                <span>{isFbLoggingIn ? 'Autenticando com a Meta...' : 'Entrar com o Facebook'}</span>
-              </button>
-            </div>
-
-            <div className="relative my-5 flex items-center justify-center">
-              <div className="border-t border-slate-800 w-full"></div>
-              <span className="bg-slate-900 px-3 text-[11px] text-slate-500 uppercase tracking-wider font-mono">
-                ou credenciais corporativas
-              </span>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  E-mail Corporativo
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ex: contato@automatas.tech"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">Senha</label>
-                  <span className="text-[11px] text-slate-500">Mínimo 4 caracteres</span>
+            {loginTab === 'jwt' ? (
+              <form onSubmit={handleJwtLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Chave JWT de Login do Projeto
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={jwtInput}
+                    onChange={(e) => setJwtInput(e.target.value)}
+                    placeholder="Cole aqui o token JWT (eyJ...) fornecido para o seu projeto"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                  />
+                  <p className="text-[11px] text-slate-500 mt-1.5">
+                    Acesso isolado apenas aos canais WhatsApp, Instagram e webhooks de 1 projeto específico.
+                  </p>
                 </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
-                />
-              </div>
 
-              <button
-                type="submit"
-                disabled={isLoggingIn}
-                className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                <span>{isLoggingIn ? 'Autenticando no Servidor...' : 'Entrar no Painel'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                >
+                  <span>{isLoggingIn ? 'Validando Chave JWT...' : 'Acessar Meu Projeto'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            ) : loginTab === 'signup' ? (
+              <form onSubmit={handleRegisterAgency} className="space-y-3">
+                <div className="grid grid-cols-1 gap-2.5">
+                  <input
+                    type="text"
+                    required
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder="Seu Nome ou Nome da Agência"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                  />
+                  <input
+                    type="email"
+                    required
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="E-mail profissional"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="password"
+                      required
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      placeholder="Senha (mín. 4 chars)"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                    />
+                    <input
+                      type="text"
+                      value={regCpfCnpj}
+                      onChange={(e) => setRegCpfCnpj(e.target.value)}
+                      placeholder="CPF/CNPJ (Asaas)"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Escolha de Plano e Ciclo */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-semibold text-slate-300">Escolha seu Plano:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setRegCycle('MONTHLY')}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold cursor-pointer ${
+                          regCycle === 'MONTHLY' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        Mensal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRegCycle('YEARLY')}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold cursor-pointer ${
+                          regCycle === 'YEARLY' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        Anual -20%
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 text-center">
+                    {[
+                      { id: 'whatsapp' as PlanId, label: 'WhatsApp', m: 'R$ 20', y: 'R$ 16', p: '3 proj.' },
+                      { id: 'instagram' as PlanId, label: 'Instagram', m: 'R$ 20', y: 'R$ 16', p: '3 proj.' },
+                      { id: 'omnichannel' as PlanId, label: 'Ambos', m: 'R$ 35', y: 'R$ 28', p: '5 proj.' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setRegPlan(opt.id)}
+                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          regPlan === opt.id
+                            ? 'bg-emerald-600/20 border-emerald-500 text-white'
+                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="text-[11px] font-bold">{opt.label}</div>
+                        <div className="text-xs font-mono font-bold text-emerald-300">
+                          {regCycle === 'YEARLY' ? opt.y : opt.m}/mês
+                        </div>
+                        <div className="text-[9px] text-slate-400">{opt.p}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-slate-500 text-center">
+                    Projeto extra após o limite: +R$ 10/mês (+R$ 8/mês no anual). Cobrança via Asaas (Pix, Boleto ou Cartão).
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                >
+                  <span>{isLoggingIn ? 'Criando Conta...' : 'Criar Conta & Gerenciar Projetos'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    E-mail (Admin, Auditoria Meta ou Conta/Agência)
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="ex: admin@automatas.tech ou sua conta"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-300">Senha</label>
+                    <span className="text-[11px] text-slate-500">Mínimo 4 caracteres</span>
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  <span>{isLoggingIn ? 'Autenticando no Servidor...' : 'Entrar no Painel'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            )}
           </div>
         </main>
 
@@ -1151,250 +1591,308 @@ export default function AppPage() {
   // ==========================================
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-blue-600 selection:text-white flex flex-col">
-      {/* Top Navbar */}
-      <header className="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-50 py-3">
-        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3 md:gap-4">
-            <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
+      {/* Top Navbar Compacta & Responsiva (Sem Overflow) */}
+      <header className="border-b border-slate-800 bg-slate-950/95 backdrop-blur-md sticky top-0 z-50 py-2.5">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between gap-3">
+          {/* Esquerda: Marca + Badge de Contexto */}
+          <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+            <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight shrink-0">
               <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
-                <Bot className="w-5 h-5 text-blue-400" />
+                <Bot className="w-4 h-4 text-blue-400" />
               </div>
-              <span>
+              <span className="hidden sm:inline">
                 automatas<span className="text-blue-500">.tech</span>
               </span>
             </Link>
-            {isConnected && (
-              <span className="hidden xl:inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium whitespace-nowrap shrink-0">
-                <Radio className="w-3 h-3 animate-pulse shrink-0" />
-                WhatsApp Cloud API Conectada
+
+            {authMode === 'client' && clientProject ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 font-semibold max-w-[160px] truncate">
+                <ShieldCheck className="w-3 h-3 shrink-0" />
+                <span className="truncate">{clientProject.name}</span>
               </span>
+            ) : authMode === 'agency' && agencyAccount ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-semibold max-w-[170px] truncate">
+                <Layers className="w-3 h-3 shrink-0" />
+                <span className="truncate">{agencyAccount.name}</span>
+              </span>
+            ) : (
+              isConnected && (
+                <span
+                  className="hidden xl:inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-medium shrink-0"
+                  title="WhatsApp Cloud API & Coexistência Conectada"
+                >
+                  <Radio className="w-3 h-3 animate-pulse shrink-0" />
+                  <span>{isCoexistence ? 'WA Coexistência' : 'Cloud API'}</span>
+                </span>
+              )
             )}
-            {isCoexistence && (
-              <span
-                className="hidden lg:inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 font-medium whitespace-nowrap shrink-0"
-                title="Número operando em Coexistência: WhatsApp Business App + Cloud API simultâneos"
-              >
-                <Smartphone className="w-3 h-3 shrink-0" />
-                <span>Coexistência</span>
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={() => handleLaunchEmbeddedSignup()}
-              disabled={isEmbeddedSigningUp}
-              className="hidden lg:inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-xl bg-[#1877F2]/15 hover:bg-[#1877F2]/25 border border-[#1877F2]/40 text-blue-300 transition-all cursor-pointer font-medium whitespace-nowrap shrink-0"
-              title="Iniciar fluxo oficial de Onboarding Embutido da Meta (com Coexistência do WhatsApp Business App)"
-            >
-              <svg className="w-3.5 h-3.5 fill-[#1877F2] shrink-0" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              <span>
-                {isEmbeddedSigningUp
-                  ? 'Conectando à Meta...'
-                  : coexistenceEnabled
-                    ? 'Embedded Signup (Coexistência)'
-                    : 'Embedded Signup (Meta)'}
-              </span>
-            </button>
           </div>
 
-          {/* Menu Central: Exibição Condicional para Admin vs Usuário Comum */}
-          <nav className="hidden md:flex items-center gap-1 bg-slate-900/70 border border-slate-800 px-2 py-1 rounded-2xl text-xs">
+          {/* Centro: Workspaces Principais (WhatsApp | Instagram | Projetos | Financeiro | Contas) */}
+          <nav className="hidden md:flex items-center gap-1 bg-slate-900/80 border border-slate-800 p-1 rounded-2xl text-xs shrink-0">
+            {canAccessWhatsapp && (
+              <button
+                type="button"
+                onClick={() => setCurrentView('chat')}
+                className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                  currentView === 'chat'
+                    ? 'bg-emerald-600/25 text-emerald-200 border border-emerald-500/40 shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <span>WhatsApp</span>
+              </button>
+            )}
+
+            {canAccessInstagram && (
+              <button
+                type="button"
+                onClick={() => setCurrentView('instagram')}
+                className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                  currentView === 'instagram'
+                    ? 'bg-fuchsia-600/25 text-fuchsia-200 border border-fuchsia-500/40 shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <Instagram className="w-3.5 h-3.5 text-fuchsia-400" />
+                <span>Instagram</span>
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => setCurrentView('chat')}
-              className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${
-                currentView === 'chat'
-                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/30'
+              onClick={() => setCurrentView('projects')}
+              className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                currentView === 'projects'
+                  ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Conversas</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>
+                {authMode === 'client'
+                  ? 'Meu Projeto'
+                  : authMode === 'agency'
+                    ? 'Meus Projetos'
+                    : 'Projetos'}
+              </span>
             </button>
 
-            {/* ABAS EXCLUSIVAS DE ADMINISTRADOR */}
-            {isAdmin && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setCurrentView('users')}
-                  className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${
-                    currentView === 'users'
-                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                  }`}
-                  title="Gerenciamento de contas de usuários e leads"
-                >
-                  <Users className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Gerenciar Contas</span>
-                  {userStats.total > 0 && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300 font-mono">
-                      {userStats.total}
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setCurrentView('projects')}
-                  className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all ${
-                    currentView === 'projects'
-                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                  }`}
-                  title="Criar projetos externos e gerar API Keys do Hub WhatsApp"
-                >
-                  <Layers className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Projetos & API</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowMetaSettingsModal(true)}
-                  className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5"
-                  title="Visualizar credenciais de webhook e endpoints Meta (Exclusivo Administrador)"
-                >
-                  <Settings className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Configurações Meta</span>
-                </button>
-              </>
+            {(isAdmin || isPreviewingClient || authMode === 'agency' || authMode === 'client') && (
+              <button
+                type="button"
+                onClick={() => setCurrentView('finance')}
+                className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                  currentView === 'finance'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <DollarSign className="w-3.5 h-3.5" />
+                <span>Financeiro</span>
+              </button>
             )}
 
-            {/* LINKS PÚBLICOS DE CONFORMIDADE PARA TODOS */}
-            <Link
-              href="/exclusao-dados"
-              className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5"
-              title="Instruções de Exclusão de Dados exigidas pela Meta / LGPD"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-red-400" />
-              <span>Exclusão de Dados</span>
-            </Link>
-            <Link
-              href="/privacidade"
-              className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5"
-              title="Política de Privacidade Oficial"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Privacidade</span>
-            </Link>
-            <Link
-              href="/termos"
-              className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5"
-              title="Termos de Serviço da Plataforma"
-            >
-              <FileText className="w-3.5 h-3.5 text-amber-400" />
-              <span>Termos</span>
-            </Link>
-            <Link
-              href="/"
-              className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5"
-              title="Página Inicial do Site"
-            >
-              <Globe className="w-3.5 h-3.5 text-slate-400" />
-              <span>Site</span>
-            </Link>
+            {(isPreviewingClient || authMode === 'agency' || authMode === 'client') && (
+              <button
+                type="button"
+                onClick={() => setCurrentView('profile')}
+                className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                  currentView === 'profile'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Minha Conta</span>
+              </button>
+            )}
+
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setCurrentView('users')}
+                className={`px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                  currentView === 'users'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Contas</span>
+              </button>
+            )}
           </nav>
 
-          {/* Lado Direito: Alternador de Perfil, Phone ID, Logout e Menu Mobile */}
-          <div className="flex items-center gap-2 md:gap-3">
-            {/* Alternador de Modo Auditoria Meta / Produção */}
-            <button
-              type="button"
-              onClick={toggleAuditorMode}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
-                isAuditorMode
-                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
-                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
-              }`}
-              title="Clique para alternar entre a visão de teste da Meta e a visão real de produção"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{isAuditorMode ? '🛡️ Visão da Meta' : '🚀 Produção'}</span>
-            </button>
-
-            {/* Botão de Alternar Visão (Teste de Perfil Admin vs Atendente) */}
-            <button
-              type="button"
-              onClick={toggleRoleView}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
-                isAdmin
-                  ? 'bg-blue-600/10 border-blue-500/30 text-blue-300 hover:bg-blue-600/20'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
-              }`}
-              title="Clique para alternar entre perfil Administrador e Atendente"
-            >
-              <span>{isAdmin ? '👑 Admin' : '👤 Atendente'}</span>
-            </button>
-
-            {fbUserProfile && (
-              <div className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-blue-950/40 border border-blue-800/40 text-xs text-blue-200">
-                {fbUserProfile.pictureUrl ? (
-                  <img src={fbUserProfile.pictureUrl} alt={fbUserProfile.name} className="w-4 h-4 rounded-full object-cover" />
-                ) : (
-                  <User className="w-3.5 h-3.5 text-blue-400" />
-                )}
-                <span className="max-w-[120px] truncate font-medium">{fbUserProfile.name}</span>
-              </div>
+          {/* Direita: Ação Rápida + Menu Compacto + Sair */}
+          <div className="flex items-center gap-2 shrink-0 relative">
+            {/* Atalho rápido para retornar ao Modo Admin quando o Admin está simulando visão de Atendente */}
+            {authMode === 'admin' && userRole === 'user' && (
+              <button
+                type="button"
+                onClick={toggleRoleView}
+                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 font-semibold transition-all cursor-pointer"
+                title="Você está pré-visualizando como Atendente. Clique para voltar à visão de Administrador."
+              >
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                <span>Voltar p/ Admin</span>
+              </button>
             )}
 
-            {/* Alternador de Modo Gravação / Privacidade */}
-            <button
-              type="button"
-              onClick={() => setPrivacyMode(!privacyMode)}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer ${
-                privacyMode
-                  ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/40'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
-              }`}
-              title={privacyMode ? 'Modo Gravação Ativo: Dados técnicos mascarados' : 'Modo Padrão: Clique para mascarar dados para gravação'}
-            >
-              {privacyMode ? <EyeOff className="w-3.5 h-3.5 text-emerald-400" /> : <Eye className="w-3.5 h-3.5" />}
-              <span className="hidden xl:inline">{privacyMode ? 'Dados Ocultos' : 'Visível'}</span>
-            </button>
+            {currentView === 'chat' && (
+              <button
+                type="button"
+                onClick={() => handleLaunchEmbeddedSignup()}
+                disabled={isEmbeddedSigningUp}
+                className="hidden lg:inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-[#1877F2]/15 hover:bg-[#1877F2]/25 border border-[#1877F2]/40 text-blue-300 transition-all cursor-pointer font-medium"
+                title="Conectar WhatsApp Business via Embedded Signup (Coexistência)"
+              >
+                <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+                <span>{isEmbeddedSigningUp ? 'Conectando...' : '+ Conectar WhatsApp'}</span>
+              </button>
+            )}
 
-            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-lg">
-              <Smartphone className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              {connectedAccounts.length > 0 ? (
-                <select
-                  value={activeChannelId}
-                  onChange={(e) => handleSelectChannel(e.target.value)}
-                  className="bg-transparent text-slate-200 focus:outline-none cursor-pointer text-xs max-w-[190px]"
-                  title="Selecionar número de WhatsApp conectado"
-                >
-                  {connectedAccounts.length > 1 && (
-                    <option value="all" className="bg-slate-900 text-slate-200">
-                      Todos ({connectedAccounts.length} números)
-                    </option>
-                  )}
-                  {connectedAccounts.map((acc) => {
-                    const label = acc.displayPhoneNumber
-                      ? acc.displayPhoneNumber
-                      : privacyMode
-                        ? `••••${acc.phoneNumberId.slice(-4)}`
-                        : acc.phoneNumberId;
-                    return (
-                      <option
-                        key={acc.phoneNumberId}
-                        value={acc.phoneNumberId}
-                        className="bg-slate-900 text-slate-200"
+            {/* Dropdown "Mais" agrupando Configurações Meta, Auditoria, Privacidade e Legal */}
+            <div className="relative hidden md:block">
+              <button
+                type="button"
+                onClick={() => setShowMoreMenu((v) => !v)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800 transition-colors cursor-pointer"
+              >
+                <Settings className="w-3.5 h-3.5 text-slate-400" />
+                <span>Opções</span>
+                <ChevronDown className="w-3 h-3 text-slate-500" />
+              </button>
+
+              {showMoreMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowMoreMenu(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-800 bg-slate-950/95 backdrop-blur-xl shadow-2xl p-2 space-y-1 z-50 text-xs">
+                    {isAdmin && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowMoreMenu(false);
+                            setShowMetaSettingsModal(true);
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-900 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Settings className="w-3.5 h-3.5 text-blue-400" />
+                          <span>Configurações Meta &amp; Webhooks</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleAuditorMode();
+                            setShowMoreMenu(false);
+                          }}
+                          className="w-full text-left px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-900 flex items-center justify-between cursor-pointer"
+                        >
+                          <span className="flex items-center gap-2">
+                            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Modo Auditoria Meta</span>
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {isAuditorMode ? 'ON' : 'OFF'}
+                          </span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Sempre visível para conta Admin mesmo quando simulando visão de Atendente */}
+                    {authMode === 'admin' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          toggleRoleView();
+                          setShowMoreMenu(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between cursor-pointer ${
+                          userRole === 'user'
+                            ? 'bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 border border-amber-500/30 font-semibold'
+                            : 'text-slate-200 hover:bg-slate-900'
+                        }`}
                       >
-                        {label} {acc.isCoexistence ? '(Coex)' : ''}
-                      </option>
-                    );
-                  })}
-                </select>
-              ) : (
-                <span>ID: {privacyMode && phoneId ? `••••${phoneId.slice(-4)}` : phoneId}</span>
+                        <span>Visão: {userRole === 'admin' ? 'Admin' : 'Cliente'}</span>
+                        <span className="text-[10px] text-blue-400">
+                          {userRole === 'admin' ? 'Simular Cliente' : 'Voltar p/ Admin'}
+                        </span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPrivacyMode(!privacyMode);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-900 flex items-center justify-between cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        {privacyMode ? (
+                          <EyeOff className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Eye className="w-3.5 h-3.5 text-slate-400" />
+                        )}
+                        <span>Ocultar Dados (Gravação)</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {privacyMode ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+
+                    <div className="border-t border-slate-800 my-1" />
+
+                    <Link
+                      href="/privacidade"
+                      onClick={() => setShowMoreMenu(false)}
+                      className="w-full px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-900 flex items-center gap-2"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Política de Privacidade</span>
+                    </Link>
+                    <Link
+                      href="/termos"
+                      onClick={() => setShowMoreMenu(false)}
+                      className="w-full px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-900 flex items-center gap-2"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Termos de Serviço</span>
+                    </Link>
+                    <Link
+                      href="/exclusao-dados"
+                      onClick={() => setShowMoreMenu(false)}
+                      className="w-full px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-900 flex items-center gap-2"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      <span>Exclusão de Dados (LGPD)</span>
+                    </Link>
+                    <Link
+                      href="/"
+                      onClick={() => setShowMoreMenu(false)}
+                      className="w-full px-3 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-900 flex items-center gap-2"
+                    >
+                      <Globe className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Site Principal</span>
+                    </Link>
+                  </div>
+                </>
               )}
             </div>
+
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs border border-slate-800 transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5 text-slate-400" />
-              <span>Sair</span>
+              <span className="hidden sm:inline">Sair</span>
             </button>
+
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white"
@@ -1411,6 +1909,88 @@ export default function AppPage() {
             <button
               type="button"
               onClick={() => {
+                setCurrentView('chat');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                currentView === 'chat' ? 'bg-emerald-600/25 text-emerald-200 font-semibold' : 'text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4 text-emerald-400" />
+              <span>WhatsApp Business</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentView('instagram');
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                currentView === 'instagram' ? 'bg-fuchsia-600/25 text-fuchsia-200 font-semibold' : 'text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              <Instagram className="w-4 h-4 text-fuchsia-400" />
+              <span>Instagram API</span>
+            </button>
+
+            {(isAdmin || authMode === 'agency' || authMode === 'client') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentView('projects');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                  currentView === 'projects' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
+                }`}
+              >
+                <Layers className="w-4 h-4 text-blue-400" />
+                <span>
+                  {authMode === 'client'
+                    ? 'Meu Projeto & Webhooks'
+                    : authMode === 'agency'
+                      ? 'Meus Projetos'
+                      : 'Hub & Projetos'}
+                </span>
+              </button>
+            )}
+
+            {(isAdmin || isPreviewingClient || authMode === 'agency' || authMode === 'client') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentView('finance');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                  currentView === 'finance' ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
+                }`}
+              >
+                <DollarSign className="w-4 h-4 text-emerald-400" />
+                <span>Financeiro &amp; Planos (Asaas)</span>
+              </button>
+            )}
+
+            {(isPreviewingClient || authMode === 'agency' || authMode === 'client') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentView('profile');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
+                  currentView === 'profile' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
+                }`}
+              >
+                <User className="w-4 h-4 text-blue-400" />
+                <span>Minha Conta &amp; Dados</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
                 setIsMobileMenuOpen(false);
                 handleLaunchEmbeddedSignup();
               }}
@@ -1418,27 +1998,7 @@ export default function AppPage() {
               className="w-full text-left px-3 py-2 rounded-xl text-xs text-blue-300 bg-[#1877F2]/10 border border-[#1877F2]/30 hover:bg-[#1877F2]/20 flex items-center gap-2"
             >
               <Smartphone className="w-4 h-4 text-blue-400" />
-              <span>
-                {isEmbeddedSigningUp
-                  ? 'Conectando à Meta...'
-                  : coexistenceEnabled
-                    ? 'Embedded Signup (Coexistência)'
-                    : 'Embedded Signup (Meta)'}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentView('chat');
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
-                currentView === 'chat' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Conversas WhatsApp</span>
+              <span>+ Conectar WhatsApp (Embedded Signup)</span>
             </button>
 
             {isAdmin && (
@@ -1454,20 +2014,7 @@ export default function AppPage() {
                   }`}
                 >
                   <Users className="w-4 h-4 text-blue-400" />
-                  <span>Gerenciar Contas & Usuários</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentView('projects');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 ${
-                    currentView === 'projects' ? 'bg-blue-600 text-white font-semibold' : 'text-slate-200 hover:bg-slate-900'
-                  }`}
-                >
-                  <Layers className="w-4 h-4 text-blue-400" />
-                  <span>Projetos & API Keys</span>
+                  <span>Gerenciar Contas &amp; Usuários</span>
                 </button>
                 <button
                   type="button"
@@ -1478,7 +2025,7 @@ export default function AppPage() {
                   className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-200 hover:bg-slate-900 flex items-center gap-2"
                 >
                   <Settings className="w-4 h-4 text-blue-400" />
-                  <span>Configurações Meta & Webhooks</span>
+                  <span>Configurações Meta &amp; Webhooks</span>
                 </button>
               </>
             )}
@@ -1564,9 +2111,40 @@ export default function AppPage() {
         {/* RENDERIZAÇÃO CONDICIONAL: GERENCIAMENTO DE CONTAS OU CHAT */}
         {currentView === 'users' && isAdmin ? (
           /* ======================================================== */
-          /* TELA EXCLUSIVA DE ADMIN: GERENCIAMENTO DE CONTAS E USUÁRIOS */
+          /* TELA EXCLUSIVA DE ADMIN: CLIENTES DO HUB + LEADS LGPD    */
           /* ======================================================== */
-          <div className="flex-1 flex flex-col space-y-5 animate-in fade-in duration-300">
+          <div className="flex-1 flex flex-col space-y-4 animate-in fade-in duration-300">
+            <div className="flex items-center gap-2 p-1 rounded-2xl bg-slate-900/80 border border-slate-800 self-start text-xs">
+              <button
+                type="button"
+                onClick={() => setAdminAccountsSubTab('clients')}
+                className={`px-3.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  adminAccountsSubTab === 'clients'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Clientes do Hub (Planos &amp; Projetos)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminAccountsSubTab('leads')}
+                className={`px-3.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  adminAccountsSubTab === 'leads'
+                    ? 'bg-slate-800 text-white border border-slate-700'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Contatos &amp; Leads (LGPD / WhatsApp)</span>
+              </button>
+            </div>
+
+            {adminAccountsSubTab === 'clients' ? (
+              <HubClientsDirectoryPanel />
+            ) : (
+              <div className="flex-1 flex flex-col space-y-5">
             {/* Header da Tela de Usuários */}
             <div className="p-6 rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -1867,9 +2445,41 @@ export default function AppPage() {
                 </table>
               </div>
             </div>
+              </div>
+            )}
           </div>
-        ) : currentView === 'projects' && isAdmin ? (
-          <HubProjectsPanel />
+        ) : currentView === 'profile' && (isPreviewingClient || authMode === 'agency' || authMode === 'client') ? (
+          <ClientProfilePanel
+            mode={authMode === 'client' ? 'client' : 'agency'}
+            accountJwt={accountJwt}
+            projectJwt={projectJwt}
+            previewAsClient={isPreviewingClient}
+            onAccountUpdated={setAgencyAccount}
+            onGoToFinance={() => setCurrentView('finance')}
+          />
+        ) : currentView === 'finance' ? (
+          <FinancialDashboardPanel
+            mode={isPreviewingClient ? 'agency' : authMode}
+            accountJwt={accountJwt}
+            projectJwt={projectJwt}
+            previewAsClient={isPreviewingClient}
+            onAccountUpdated={setAgencyAccount}
+          />
+        ) : currentView === 'instagram' ? (
+          <InstagramWorkspacePanel
+            mode={authMode}
+            projectJwt={projectJwt}
+            accountJwt={accountJwt}
+            metaAppId={metaAppId}
+            onRefreshParent={fetchMessagesAndContacts}
+          />
+        ) : currentView === 'projects' ? (
+          <HubProjectsPanel
+            mode={authMode}
+            projectJwt={projectJwt}
+            accountJwt={accountJwt}
+            onAccountUpdated={setAgencyAccount}
+          />
         ) : (
           /* ======================================================== */
           /* TELA PADRÃO: CHAT & ATENDIMENTO WHATSAPP (2 COLUNAS)     */
@@ -2431,7 +3041,7 @@ export default function AppPage() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1">
-                  URL de Callback do Webhook (Produção)
+                  URL de Callback do Webhook WhatsApp (Produção)
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -2443,10 +3053,32 @@ export default function AppPage() {
                   <button
                     type="button"
                     onClick={() => handleCopy('https://api.automatas.tech/webhook', 'webhook')}
-                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1.5 transition-colors"
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     {copiedField === 'webhook' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedField === 'webhook' ? 'Copiado' : 'Copiar'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-fuchsia-300/90 mb-1">
+                  URL de Callback do Webhook Instagram (Produção)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value="https://api.automatas.tech/webhook/instagram"
+                    className="flex-1 bg-slate-950 border border-fuchsia-500/30 rounded-xl px-3.5 py-2 text-xs font-mono text-fuchsia-200 select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('https://api.automatas.tech/webhook/instagram', 'webhook_ig')}
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {copiedField === 'webhook_ig' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedField === 'webhook_ig' ? 'Copiado' : 'Copiar'}</span>
                   </button>
                 </div>
               </div>
@@ -2778,18 +3410,18 @@ export default function AppPage() {
                 </div>
               </div>
 
-              {/* Gatilhos de Demonstração para Gravação de Vídeo */}
+              {/* Gatilhos de Demonstração / Onboarding Meta */}
               <div className="pt-2 flex flex-col sm:flex-row gap-2">
                 <button
                   type="button"
-                  onClick={handleFacebookLogin}
-                  disabled={isFbLoggingIn}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  onClick={() => {
+                    setShowMetaSettingsModal(false);
+                    setCurrentView('instagram');
+                  }}
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:opacity-95 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  <span>{isFbLoggingIn ? 'Abrindo Pop-up...' : 'Testar Login com Facebook'}</span>
+                  <Instagram className="w-4 h-4" />
+                  <span>Abrir Workspace Instagram (Unified Login)</span>
                 </button>
 
                 <button

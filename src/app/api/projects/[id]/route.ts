@@ -35,7 +35,8 @@ export async function POST(
   try {
     const { id } = await context.params;
     const body = await request.json().catch(() => ({}));
-    const action = body.action === 'assign-phone' ? 'assign-phone' : 'rotate-key';
+    const allowedActions = new Set(['rotate-key', 'rotate-jwt', 'assign-phone', 'assign-instagram']);
+    const action = allowedActions.has(String(body.action)) ? String(body.action) : 'rotate-key';
 
     const resp = await fetch(
       `${BACKEND_URL}/api/projects/${encodeURIComponent(id)}/${action}`,

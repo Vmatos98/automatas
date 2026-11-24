@@ -452,6 +452,57 @@ export function launchWhatsAppEmbeddedSignup(options: {
 }
 
 /**
+ * Inicia o fluxo oficial de Login Unificado da API do Instagram (Meta Unified Login / SUAT).
+ * Usa o Configuration ID da configuração de Instagram (ex: 2221685615392715) e retorna code OAuth.
+ */
+export function launchInstagramUnifiedLogin(options: {
+  configId: string;
+}): Promise<FacebookLoginResult> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !window.FB) {
+      return resolve({
+        status: 'error',
+        error: 'Facebook SDK não está carregado.',
+      });
+    }
+
+    const trimmedConfigId = (options.configId || '').trim();
+    if (!trimmedConfigId) {
+      return resolve({
+        status: 'error',
+        error: 'Instagram Unified Login Configuration ID não configurado.',
+      });
+    }
+
+    try {
+      window.FB.login(
+        (response: FacebookLoginResult) => {
+          if (response && response.authResponse && (response.authResponse.code || response.authResponse.accessToken)) {
+            resolve({
+              status: 'connected',
+              authResponse: response.authResponse,
+            });
+          } else {
+            resolve({
+              status: response?.status || 'unknown',
+              error: 'Login unificado do Instagram cancelado ou sem permissões concedidas.',
+            });
+          }
+        },
+        {
+          config_id: trimmedConfigId,
+          response_type: 'code',
+          override_default_response_type: true,
+        }
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      resolve({ status: 'error', error: msg });
+    }
+  });
+}
+
+/**
  * Busca dados do perfil do usuário logado via Graph API
  */
 export function getFacebookUserProfile(): Promise<FacebookUserProfile | null> {
