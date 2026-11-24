@@ -66,9 +66,22 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const eventId = request.nextUrl.searchParams.get('eventId') || '';
+    if (eventId) {
+      const resp = await fetch(
+        `${BACKEND_URL}/api/projects/instagram/events/${encodeURIComponent(eventId)}`,
+        {
+          method: 'DELETE',
+          headers: { 'x-api-key': INTERNAL_API_KEY },
+        }
+      );
+      const data = await resp.json().catch(() => ({}));
+      return NextResponse.json(data, { status: resp.status });
+    }
+
     const igUserId = request.nextUrl.searchParams.get('igUserId') || '';
     if (!igUserId) {
-      return NextResponse.json({ success: false, error: 'igUserId é obrigatório.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'igUserId ou eventId é obrigatório.' }, { status: 400 });
     }
     const resp = await fetch(
       `${BACKEND_URL}/api/projects/instagram/accounts/${encodeURIComponent(igUserId)}`,
@@ -80,7 +93,7 @@ export async function DELETE(request: NextRequest) {
     const data = await resp.json().catch(() => ({}));
     return NextResponse.json(data, { status: resp.status });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Erro ao desconectar conta do Instagram';
+    const msg = err instanceof Error ? err.message : 'Erro ao remover registro do Instagram';
     return NextResponse.json({ success: false, error: msg }, { status: 502 });
   }
 }

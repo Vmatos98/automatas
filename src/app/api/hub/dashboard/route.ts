@@ -114,6 +114,10 @@ export async function POST(request: NextRequest) {
         method: 'DELETE',
         path: `/api/hub/v1/instagram/accounts/${encodeURIComponent(String(payload.igUserId || ''))}`,
       },
+      'instagram-delete-event': {
+        method: 'DELETE',
+        path: `/api/hub/v1/instagram/events/${encodeURIComponent(String(payload.eventId || ''))}`,
+      },
     };
 
     const target = actionMap[String(action || '')];

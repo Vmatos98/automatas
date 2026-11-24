@@ -21,6 +21,8 @@ import {
   Users,
   TrendingUp,
   ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { initFacebookSdk, launchInstagramUnifiedLogin } from '@/lib/facebookSdk';
 
@@ -229,6 +231,9 @@ export interface InstagramEventItem {
   text: string;
   status: string;
   timestamp: string;
+  relatedCommentText?: string;
+  relatedCommentAuthor?: string;
+  relatedMediaId?: string;
 }
 
 interface InstagramWorkspacePanelProps {
@@ -264,6 +269,38 @@ export default function InstagramWorkspacePanel({
   const [workspaceTab, setWorkspaceTab] = useState<'feed' | 'insights'>('feed');
   const [insights, setInsights] = useState<InstagramInsightsSummary | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+
+  const toggleCard = (id: string) => {
+    setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleDeleteEventCard = async (eventId: string) => {
+    if (isShowingDemo) {
+      setDemoEvents((prev) => prev.filter((e) => e.id !== eventId && e.commentId !== eventId));
+      setNotice('[Preview Demo] Card removido da visualização.');
+      return;
+    }
+    try {
+      const resp =
+        mode === 'client'
+          ? await fetch('/api/hub/dashboard', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-project-jwt': projectJwt || '',
+              },
+              body: JSON.stringify({ action: 'instagram-delete-event', eventId }),
+            })
+          : await fetch(`/api/instagram?eventId=${encodeURIComponent(eventId)}`, {
+              method: 'DELETE',
+            });
+      if (resp.ok) {
+        setEvents((prev) => prev.filter((e) => e.id !== eventId));
+        setNotice('Card removido do painel (o comentário no Instagram permanece intacto).');
+      }
+    } catch {}
+  };
 
   // Form: conexão manual via token da Meta
   const [showManualForm, setShowManualForm] = useState(false);
@@ -1196,90 +1233,344 @@ export default function InstagramWorkspacePanel({
                 tempo real.
               </p>
             </div>
-          ) : (
+          ) : filterType === 'dm' ? (
+            /* ABA DMs: mostra TODAS as DMs (recebidas + enviadas, inclusive Private Replies) + info do comentário/post ao clicar */
             <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
-              {visibleEvents.map((ev) => (
-                <div
-                  key={ev.id}
-                  className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
-                    ev.direction === 'outbound'
-                      ? 'bg-fuchsia-950/15 border-fuchsia-500/25 ml-6'
-                      : 'bg-slate-950/80 border-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          ev.eventType === 'dm'
-                            ? 'bg-blue-500/15 text-blue-300'
-                            : ev.eventType === 'reply'
-                              ? 'bg-emerald-500/15 text-emerald-300'
-                              : 'bg-fuchsia-500/15 text-fuchsia-300'
-                        }`}
-                      >
-                        {ev.eventType === 'dm'
-                          ? 'DM'
-                          : ev.eventType === 'reply'
-                            ? 'Resposta'
-                            : 'Comentário'}
-                      </span>
-                      <span className="font-semibold text-slate-200">
-                        {ev.direction === 'outbound'
-                          ? 'Você (Automatas)'
-                          : `@${ev.senderUsername || ev.senderId || 'usuário'}`}
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-500">
-                        IG {ev.igUserId}
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-slate-500">
-                      {new Date(ev.timestamp).toLocaleString('pt-BR')}
-                    </span>
-                  </div>
+              {visibleEvents.map((dm) => {
+                const isExpanded = Boolean(expandedCards[dm.id]);
+                const hasCommentContext = Boolean(
+                  dm.commentId || dm.relatedCommentText || dm.relatedMediaId
+                );
+                const parentComment = dm.commentId
+                  ? rawDisplayedEvents.find(
+                      (e) =>
+                        e.eventType === 'comment' &&
+                        (e.id === dm.commentId || e.commentId === dm.commentId)
+                    )
+                  : undefined;
+                const ctxText = dm.relatedCommentText || parentComment?.text;
+                const ctxAuthor =
+                  dm.relatedCommentAuthor ||
+                  parentComment?.senderUsername ||
+                  parentComment?.senderId;
+                const ctxMediaId = dm.relatedMediaId || parentComment?.mediaId;
 
-                  <p className="text-slate-200 whitespace-pre-wrap">{ev.text}</p>
+                return (
+                  <div
+                    key={dm.id}
+                    onClick={() => hasCommentContext && toggleCard(dm.id)}
+                    className={`p-3.5 rounded-2xl border text-xs space-y-2 transition-all ${
+                      hasCommentContext ? 'cursor-pointer hover:border-blue-500/40' : ''
+                    } ${
+                      dm.direction === 'outbound'
+                        ? 'bg-blue-950/20 border-blue-500/30'
+                        : 'bg-slate-950/90 border-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            dm.direction === 'outbound'
+                              ? 'bg-blue-500/20 text-blue-300'
+                              : 'bg-emerald-500/15 text-emerald-300'
+                          }`}
+                        >
+                          {dm.direction === 'outbound' ? 'DM Enviada' : 'DM Recebida'}
+                        </span>
+                        <span className="font-semibold text-slate-200">
+                          {dm.direction === 'outbound'
+                            ? 'Você (Automatas)'
+                            : `@${dm.senderUsername || dm.senderId || 'usuário'}`}
+                        </span>
+                        {hasCommentContext && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-fuchsia-500/15 text-fuchsia-300 flex items-center gap-1">
+                            <span>Origem: Comentário</span>
+                            {isExpanded ? (
+                              <ChevronUp className="w-3 h-3" />
+                            ) : (
+                              <ChevronDown className="w-3 h-3" />
+                            )}
+                          </span>
+                        )}
+                      </div>
 
-                  {ev.direction === 'inbound' && (
-                    <div className="flex items-center gap-2 pt-1">
-                      {ev.eventType === 'comment' && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setActiveReplyTarget({ kind: 'public_comment', event: ev })
-                            }
-                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 flex items-center gap-1 cursor-pointer"
-                          >
-                            <MessageSquare className="w-3 h-3 text-fuchsia-400" />
-                            <span>Responder Comentário</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setActiveReplyTarget({ kind: 'private_reply', event: ev })
-                            }
-                            className="px-2.5 py-1 rounded-lg bg-fuchsia-600/20 hover:bg-fuchsia-600/30 text-[11px] text-fuchsia-300 border border-fuchsia-500/30 flex items-center gap-1 cursor-pointer"
-                          >
-                            <Send className="w-3 h-3" />
-                            <span>Private Reply (DM)</span>
-                          </button>
-                        </>
-                      )}
-                      {ev.eventType === 'dm' && ev.senderId && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-500">
+                          {new Date(dm.timestamp).toLocaleString('pt-BR')}
+                        </span>
                         <button
                           type="button"
-                          onClick={() => setActiveReplyTarget({ kind: 'dm', event: ev })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEventCard(dm.id);
+                          }}
+                          className="p-1 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/30 cursor-pointer"
+                          title="Remover card do painel"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-slate-100 whitespace-pre-wrap text-[13px]">{dm.text}</p>
+
+                    {isExpanded && hasCommentContext && (
+                      <div className="p-2.5 rounded-xl bg-slate-950/90 border border-fuchsia-500/25 text-[11px] space-y-1 text-slate-300">
+                        <div className="font-semibold text-fuchsia-300">
+                          Enviada em resposta ao comentário:
+                        </div>
+                        {ctxAuthor && (
+                          <div>
+                            Autor: <strong className="text-white">@{ctxAuthor}</strong>
+                          </div>
+                        )}
+                        {ctxText && (
+                          <div className="text-slate-300 italic">&ldquo;{ctxText}&rdquo;</div>
+                        )}
+                        <div className="text-[10px] font-mono text-slate-500">
+                          Post / Media ID: {ctxMediaId || 'N/A'} • Comment ID: {dm.commentId}
+                        </div>
+                      </div>
+                    )}
+
+                    {dm.direction === 'inbound' && dm.senderId && (
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveReplyTarget({ kind: 'dm', event: dm });
+                          }}
                           className="px-2.5 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-[11px] text-blue-300 border border-blue-500/30 flex items-center gap-1 cursor-pointer"
                         >
                           <Send className="w-3 h-3" />
                           <span>Responder DM</span>
                         </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* TODOS ou COMENTÁRIOS: Comentários em estilo Sanfona + DMs recebidas grandes e independentes */
+            <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+              {(() => {
+                const baseScoped = rawDisplayedEvents.filter((ev) =>
+                  selectedIgId !== 'all' ? ev.igUserId === selectedIgId : true
+                );
+
+                // Apenas cards de topo: Comentários principais + (se filtro === 'all') DMs recebidas independentes
+                const topCards = visibleEvents.filter((ev) => {
+                  if (ev.eventType === 'comment' && ev.direction === 'inbound') return true;
+                  if (ev.eventType === 'comment' && ev.direction === 'outbound') {
+                    // Só mostra solto se não houver comentário pai inbound
+                    return !baseScoped.some(
+                      (p) =>
+                        p.eventType === 'comment' &&
+                        p.direction === 'inbound' &&
+                        (p.id === ev.commentId || p.commentId === ev.commentId)
+                    );
+                  }
+                  if (filterType === 'all' && ev.eventType === 'dm' && ev.direction === 'inbound') {
+                    return true;
+                  }
+                  return false;
+                });
+
+                return topCards.map((ev) => {
+                  // DM recebida independente (grande e destacada)
+                  if (ev.eventType === 'dm') {
+                    return (
+                      <div
+                        key={ev.id}
+                        className="p-4 rounded-2xl border border-blue-500/35 bg-blue-950/15 text-xs space-y-2.5 shadow-sm"
+                      >
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                              DM Recebida
+                            </span>
+                            <span className="font-semibold text-white">
+                              @{ev.senderUsername || ev.senderId || 'usuário'}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-500">
+                              IG {ev.igUserId}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(ev.timestamp).toLocaleString('pt-BR')}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteEventCard(ev.id)}
+                              className="p-1 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/30 cursor-pointer"
+                              title="Remover card do painel"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="text-slate-100 whitespace-pre-wrap text-sm">{ev.text}</p>
+
+                        {ev.senderId && (
+                          <div className="pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setActiveReplyTarget({ kind: 'dm', event: ev })}
+                              className="px-3 py-1.5 rounded-xl bg-blue-600/25 hover:bg-blue-600/35 text-xs font-semibold text-blue-200 border border-blue-500/40 flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              <span>Responder DM</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // Comentário em Sanfona (clicável para expandir/retrair respostas, DM e ações)
+                  const cid = ev.commentId || ev.id;
+                  const childReplies = baseScoped.filter(
+                    (c) =>
+                      c.id !== ev.id &&
+                      (c.eventType === 'reply' ||
+                        (c.eventType === 'comment' && c.direction === 'outbound')) &&
+                      c.commentId === cid
+                  );
+                  const childDms = baseScoped.filter(
+                    (c) => c.id !== ev.id && c.eventType === 'dm' && c.commentId === cid
+                  );
+                  const isExpanded = Boolean(expandedCards[ev.id]);
+
+                  return (
+                    <div
+                      key={ev.id}
+                      className="rounded-2xl border border-slate-800 bg-slate-950/80 text-xs overflow-hidden transition-all"
+                    >
+                      <div
+                        onClick={() => toggleCard(ev.id)}
+                        className="p-3.5 cursor-pointer hover:bg-slate-900/60 transition-colors space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-500/15 text-fuchsia-300">
+                              Comentário
+                            </span>
+                            <span className="font-semibold text-slate-100">
+                              @{ev.senderUsername || ev.senderId || 'usuário'}
+                            </span>
+                            {childReplies.length > 0 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300">
+                                {childReplies.length}{' '}
+                                {childReplies.length === 1 ? 'resposta' : 'respostas'}
+                              </span>
+                            )}
+                            {childDms.length > 0 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300">
+                                {childDms.length} DM
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500">
+                              {new Date(ev.timestamp).toLocaleString('pt-BR')}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteEventCard(ev.id);
+                              }}
+                              className="p-1 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/30 cursor-pointer"
+                              title="Remover card do painel (não apaga do Instagram)"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4 text-slate-400" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-slate-400" />
+                            )}
+                          </div>
+                        </div>
+
+                        <p className="text-slate-200 whitespace-pre-wrap">{ev.text}</p>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="px-3.5 pb-3.5 pt-2 border-t border-slate-800/80 bg-slate-900/40 space-y-2.5">
+                          {(childReplies.length > 0 || childDms.length > 0) && (
+                            <div className="space-y-1.5 pl-3 border-l-2 border-fuchsia-500/30">
+                              {childReplies.map((r) => (
+                                <div
+                                  key={r.id}
+                                  className="p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-500/25 space-y-1"
+                                >
+                                  <div className="flex items-center justify-between text-[10px]">
+                                    <span className="font-bold text-emerald-300">
+                                      Resposta Pública
+                                    </span>
+                                    <span className="text-slate-500">
+                                      {new Date(r.timestamp).toLocaleString('pt-BR')}
+                                    </span>
+                                  </div>
+                                  <p className="text-slate-200">{r.text}</p>
+                                </div>
+                              ))}
+                              {childDms.map((d) => (
+                                <div
+                                  key={d.id}
+                                  className="p-2.5 rounded-xl bg-blue-950/20 border border-blue-500/25 space-y-1"
+                                >
+                                  <div className="flex items-center justify-between text-[10px]">
+                                    <span className="font-bold text-blue-300">
+                                      Private Reply (DM Enviada)
+                                    </span>
+                                    <span className="text-slate-500">
+                                      {new Date(d.timestamp).toLocaleString('pt-BR')}
+                                    </span>
+                                  </div>
+                                  <p className="text-slate-200">{d.text}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {ev.direction === 'inbound' && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveReplyTarget({ kind: 'public_comment', event: ev })
+                                }
+                                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 flex items-center gap-1 cursor-pointer"
+                              >
+                                <MessageSquare className="w-3 h-3 text-fuchsia-400" />
+                                <span>Responder Comentário</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveReplyTarget({ kind: 'private_reply', event: ev })
+                                }
+                                className="px-2.5 py-1 rounded-lg bg-fuchsia-600/20 hover:bg-fuchsia-600/30 text-[11px] text-fuchsia-300 border border-fuchsia-500/30 flex items-center gap-1 cursor-pointer"
+                              >
+                                <Send className="w-3 h-3" />
+                                <span>Private Reply (DM)</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
+                  );
+                });
+              })()}
             </div>
           )}
             </>
