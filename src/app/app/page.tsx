@@ -148,6 +148,7 @@ export default function AppPage() {
   const [regCpfCnpj, setRegCpfCnpj] = useState('');
   const [regPlan, setRegPlan] = useState<PlanId>('omnichannel');
   const [regCycle, setRegCycle] = useState<BillingCycle>('MONTHLY');
+  const [regCourtesyCode, setRegCourtesyCode] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -995,6 +996,7 @@ export default function AppPage() {
           cpfCnpj: regCpfCnpj.trim() || undefined,
           planId: regPlan,
           billingCycle: regCycle,
+          courtesyCode: regCourtesyCode.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -1009,12 +1011,15 @@ export default function AppPage() {
       setUserRole('user');
       setIsAuditorMode(false);
       setIsAuthenticated(true);
-      setCurrentView('finance');
+      setCurrentView(data.courtesyApplied ? 'projects' : 'finance');
+      setRegCourtesyCode('');
       localStorage.setItem('automatas_account_jwt', data.accountJwt);
       localStorage.removeItem('automatas_project_jwt');
       localStorage.removeItem('automatas_app_auth');
       setFeedbackMessage({
-        text: `Conta "${data.account.name}" criada! Finalize sua assinatura Asaas no Financeiro ou comece a criar projetos.`,
+        text: data.courtesyApplied
+          ? `Conta "${data.account.name}" criada com Código de Cortesia aplicado (Omnichannel Isento)!`
+          : `Conta "${data.account.name}" criada! Finalize sua assinatura Asaas no Financeiro ou comece a criar projetos.`,
         type: 'success',
       });
     } catch {
@@ -1524,6 +1529,21 @@ export default function AppPage() {
                   <p className="text-[10px] text-slate-500 text-center">
                     Projeto extra após o limite: +R$ 10/mês (+R$ 8/mês no anual). Cobrança via Asaas (Pix, Boleto ou Cartão).
                   </p>
+                </div>
+
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    value={regCourtesyCode}
+                    onChange={(e) => setRegCourtesyCode(e.target.value.toUpperCase())}
+                    placeholder="Código de Cortesia / Gratuidade (opcional)"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-emerald-300 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                  />
+                  {regCourtesyCode.trim() && (
+                    <p className="text-[10px] text-emerald-400">
+                      Código informado: se válido, libera acesso Omnichannel Isento (R$ 0,00) imediatamente.
+                    </p>
+                  )}
                 </div>
 
                 <button

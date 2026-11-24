@@ -19,6 +19,8 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
+  Ticket,
+  Trash2,
   TrendingUp,
   Users,
 } from 'lucide-react';
@@ -99,6 +101,19 @@ export interface BillingInvoiceItem {
   createdAt: string;
 }
 
+export interface CourtesyCodeItem {
+  code: string;
+  label?: string;
+  maxUses: number;
+  usesCount: number;
+  usedByAccountId?: string;
+  usedByEmail?: string;
+  expiresAt: string;
+  status: 'active' | 'used' | 'expired';
+  createdAt: string;
+  usedAt?: string;
+}
+
 interface AdminMetrics {
   mrr: number;
   arr: number;
@@ -160,6 +175,12 @@ export default function FinancialDashboardPanel({
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [accounts, setAccounts] = useState<PublicSaasAccount[]>([]);
   const [invoices, setInvoices] = useState<BillingInvoiceItem[]>([]);
+  const [courtesyCodes, setCourtesyCodes] = useState<CourtesyCodeItem[]>([]);
+  const [genCodesCount, setGenCodesCount] = useState<number>(1);
+  const [genCodesLabel, setGenCodesLabel] = useState<string>('Cortesia 2 anos (Uso único)');
+  const [generatingCodes, setGeneratingCodes] = useState(false);
+  const [redeemCodeInput, setRedeemCodeInput] = useState('');
+  const [redeemingCode, setRedeemingCode] = useState(false);
   const [showNewAccForm, setShowNewAccForm] = useState(false);
   const [newAccName, setNewAccName] = useState('');
   const [newAccEmail, setNewAccEmail] = useState('');
@@ -197,6 +218,7 @@ export default function FinancialDashboardPanel({
         setMetrics(data.metrics || null);
         setAccounts(data.accounts || []);
         setInvoices(data.invoices || []);
+        setCourtesyCodes(data.courtesyCodes || []);
       } else if (mode === 'client') {
         if (!projectJwt) return;
         const resp = await fetch('/api/hub/dashboard?scope=billing', {
@@ -398,6 +420,77 @@ export default function FinancialDashboardPanel({
     if (resp.ok) {
       setNotice('Fatura marcada como PAGA e conta ativada!');
       await loadData();
+    }
+  };
+
+  const handleGenerateCodes = async () => {
+    setGeneratingCodes(true);
+    setError('');
+    setNotice('');
+    try {
+      const resp = await fetch('/api/billing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'admin-generate-codes',
+          count: genCodesCount,
+          validYears: 2,
+          label: genCodesLabel.trim() || 'Cortesia 2 anos (Uso único)',
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        setError(data.error || 'Erro ao gerar códigos.');
+        return;
+      }
+      setCourtesyCodes(data.courtesyCodes || []);
+      setNotice(`${data.created?.length || genCodesCount} código(s) de uso único (validade 2 anos) gerado(s)!`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao gerar códigos.');
+    } finally {
+      setGeneratingCodes(false);
+    }
+  };
+
+  const handleDeleteCode = async (code: string) => {
+    const resp = await fetch(`/api/billing?code=${encodeURIComponent(code)}`, { method: 'DELETE' });
+    if (resp.ok) {
+      setCourtesyCodes((prev) => prev.filter((c) => c.code !== code));
+    }
+  };
+
+  const handleRedeemCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!redeemCodeInput.trim()) return;
+    if (previewAsClient && !accountJwt) {
+      setNotice('[Preview Cliente] Código validado visualmente!');
+      return;
+    }
+    if (!accountJwt) return;
+    setRedeemingCode(true);
+    setError('');
+    setNotice('');
+    try {
+      const resp = await fetch('/api/billing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-account-jwt': accountJwt,
+        },
+        body: JSON.stringify({ action: 'redeem-code', code: redeemCodeInput.trim() }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        setError(data.error || 'Código inválido ou já utilizado.');
+        return;
+      }
+      setNotice('Código de cortesia aplicado! Sua conta agora é Isenta (R$ 0,00 / Ilimitada).');
+      setRedeemCodeInput('');
+      await loadData();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao aplicar código.');
+    } finally {
+      setRedeemingCode(false);
     }
   };
 
@@ -900,6 +993,104 @@ export default function FinancialDashboardPanel({
             </div>
           )}
         </div>
+
+        {/* Códigos de Cortesia (Uso Único • Validade 2 Anos) */}
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <span className="text-xs font-bold text-slate-200 flex items-center gap-2">
+              <Ticket className="w-4 h-4 text-amber-400" />
+              Códigos de Cortesia / Gratuidade ({courtesyCodes.length})
+            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={genCodesCount}
+                onChange={(e) => setGenCodesCount(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                className="w-16 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-100 text-center"
+                title="Quantidade de códigos"
+              />
+              <input
+                type="text"
+                value={genCodesLabel}
+                onChange={(e) => setGenCodesLabel(e.target.value)}
+                placeholder="Rótulo (ex: Meta App Review)"
+                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100"
+              />
+              <button
+                type="button"
+                onClick={handleGenerateCodes}
+                disabled={generatingCodes}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{generatingCodes ? 'Gerando...' : 'Gerar (2 anos)'}</span>
+              </button>
+            </div>
+          </div>
+
+          {courtesyCodes.length === 0 ? (
+            <div className="p-6 text-center text-xs text-slate-500">
+              Nenhum código de cortesia gerado ainda.
+            </div>
+          ) : (
+            <div className="overflow-x-auto max-h-[340px] overflow-y-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="px-4 py-2.5">Código (Uso Único)</th>
+                    <th className="px-4 py-2.5">Rótulo</th>
+                    <th className="px-4 py-2.5">Validade</th>
+                    <th className="px-4 py-2.5">Status / Uso</th>
+                    <th className="px-4 py-2.5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/70">
+                  {courtesyCodes.map((c) => (
+                    <tr key={c.code} className="hover:bg-slate-900/80">
+                      <td className="px-4 py-2.5 font-mono font-bold text-amber-300">{c.code}</td>
+                      <td className="px-4 py-2.5 text-slate-300">{c.label || '-'}</td>
+                      <td className="px-4 py-2.5 text-slate-400">
+                        {new Date(c.expiresAt).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        {c.status === 'active' ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold">
+                            Disponível (0/1)
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                            {c.status === 'used'
+                              ? `Usado${c.usedByEmail ? ` (${c.usedByEmail})` : ''}`
+                              : 'Expirado'}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-right space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => copyText(c.code, `code_${c.code}`)}
+                          className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] cursor-pointer"
+                        >
+                          {copiedId === `code_${c.code}` ? 'Copiado!' : 'Copiar'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCode(c.code)}
+                          className="p-1 rounded-lg text-slate-500 hover:text-red-400 cursor-pointer"
+                          title="Excluir código"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 inline" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -1214,12 +1405,41 @@ export default function FinancialDashboardPanel({
         </div>
       )}
 
-      {/* Seletor de Planos + Checkout Asaas (escondido apenas se isento) */}
+      {/* Resgatar Código de Cortesia + Seletor de Planos + Checkout Asaas (escondido apenas se isento) */}
       {!myAccount?.isExempt && (
-        <form
-          onSubmit={handleSubscribe}
-          className="p-5 rounded-3xl border border-slate-800 bg-slate-900/60 space-y-5"
-        >
+        <>
+          <form
+            onSubmit={handleRedeemCode}
+            className="p-4 rounded-3xl border border-amber-500/30 bg-amber-950/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          >
+            <div className="flex items-center gap-2.5 text-xs">
+              <Ticket className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="text-slate-200">
+                <strong>Possui um Código de Cortesia?</strong> Resgate para liberar acesso isento:
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={redeemCodeInput}
+                onChange={(e) => setRedeemCodeInput(e.target.value.toUpperCase())}
+                placeholder="Ex: AUT-XXXX-XXXX"
+                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-500"
+              />
+              <button
+                type="submit"
+                disabled={redeemingCode}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white cursor-pointer"
+              >
+                {redeemingCode ? 'Aplicando...' : 'Aplicar Código'}
+              </button>
+            </div>
+          </form>
+
+          <form
+            onSubmit={handleSubscribe}
+            className="p-5 rounded-3xl border border-slate-800 bg-slate-900/60 space-y-5"
+          >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -1380,6 +1600,7 @@ export default function FinancialDashboardPanel({
             </button>
           </div>
         </form>
+        </>
       )}
 
       {/* Histórico de Faturas da Conta */}

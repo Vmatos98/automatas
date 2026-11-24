@@ -47,8 +47,14 @@ export async function POST(request: NextRequest) {
     } else if (action === 'subscribe') {
       url = `${BACKEND_URL}/api/billing/subscribe`;
       headers['x-account-jwt'] = accountJwt;
+    } else if (action === 'redeem-code') {
+      url = `${BACKEND_URL}/api/billing/redeem-code`;
+      headers['x-account-jwt'] = accountJwt;
     } else if (action === 'admin-create-account') {
       url = `${BACKEND_URL}/api/billing/admin/accounts`;
+      headers['x-api-key'] = INTERNAL_API_KEY;
+    } else if (action === 'admin-generate-codes') {
+      url = `${BACKEND_URL}/api/billing/admin/courtesy-codes`;
       headers['x-api-key'] = INTERNAL_API_KEY;
     } else if (action === 'admin-mark-paid') {
       url = `${BACKEND_URL}/api/billing/admin/invoices/${encodeURIComponent(String(body.invoiceId || ''))}/mark-paid`;
@@ -107,6 +113,27 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(data, { status: resp.status });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Erro ao atualizar conta';
+    return NextResponse.json({ success: false, error: msg }, { status: 502 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const code = request.nextUrl.searchParams.get('code') || '';
+    if (!code) {
+      return NextResponse.json({ success: false, error: 'code obrigatório.' }, { status: 400 });
+    }
+    const resp = await fetch(
+      `${BACKEND_URL}/api/billing/admin/courtesy-codes/${encodeURIComponent(code)}`,
+      {
+        method: 'DELETE',
+        headers: { 'x-api-key': INTERNAL_API_KEY },
+      }
+    );
+    const data = await resp.json().catch(() => ({}));
+    return NextResponse.json(data, { status: resp.status });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erro ao remover código';
     return NextResponse.json({ success: false, error: msg }, { status: 502 });
   }
 }
