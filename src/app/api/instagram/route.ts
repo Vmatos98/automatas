@@ -7,9 +7,14 @@ const INTERNAL_API_KEY =
 
 export async function GET(request: NextRequest) {
   try {
+    const scope = request.nextUrl.searchParams.get('scope') || 'overview';
     const igUserId = request.nextUrl.searchParams.get('igUserId') || '';
     const qs = igUserId && igUserId !== 'all' ? `?igUserId=${encodeURIComponent(igUserId)}` : '';
-    const resp = await fetch(`${BACKEND_URL}/api/projects/instagram/overview${qs}`, {
+    const endpoint =
+      scope === 'insights'
+        ? `/api/projects/instagram/insights${qs}`
+        : `/api/projects/instagram/overview${qs}`;
+    const resp = await fetch(`${BACKEND_URL}${endpoint}`, {
       headers: { 'x-api-key': INTERNAL_API_KEY },
       cache: 'no-store',
     });

@@ -32,6 +32,16 @@ export async function GET(request: NextRequest) {
       const data = await resp.json().catch(() => ({}));
       return NextResponse.json(data, { status: resp.status });
     }
+    if (scope === 'instagram-insights') {
+      const igUserId = request.nextUrl.searchParams.get('igUserId') || '';
+      const qs = igUserId && igUserId !== 'all' ? `?igUserId=${encodeURIComponent(igUserId)}` : '';
+      const resp = await fetch(`${BACKEND_URL}/api/hub/v1/instagram/insights${qs}`, {
+        headers: authHeader,
+        cache: 'no-store',
+      });
+      const data = await resp.json().catch(() => ({}));
+      return NextResponse.json(data, { status: resp.status });
+    }
 
     const phoneNumberId = request.nextUrl.searchParams.get('phoneNumberId') || '';
     const igUserId = request.nextUrl.searchParams.get('igUserId') || '';

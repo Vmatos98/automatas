@@ -15,8 +15,96 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
+  BarChart3,
+  Eye,
+  Heart,
+  Users,
+  TrendingUp,
+  ExternalLink,
 } from 'lucide-react';
 import { initFacebookSdk, launchInstagramUnifiedLogin } from '@/lib/facebookSdk';
+
+export interface InstagramMediaInsightItem {
+  id: string;
+  caption?: string;
+  mediaType?: string;
+  mediaProductType?: string;
+  permalink?: string;
+  thumbnailUrl?: string;
+  timestamp?: string;
+  likeCount: number;
+  commentsCount: number;
+  reach?: number;
+  views?: number;
+  saved?: number;
+  shares?: number;
+}
+
+export interface InstagramInsightsSummary {
+  igUserId: string;
+  username?: string;
+  name?: string;
+  profilePictureUrl?: string;
+  followersCount: number;
+  followsCount: number;
+  mediaCount: number;
+  periodLabel: string;
+  metrics: {
+    reach: number;
+    profileViews: number;
+    accountsEngaged: number;
+    totalInteractions: number;
+  };
+  recentMedia: InstagramMediaInsightItem[];
+  warnings: string[];
+  fetchedAt: string;
+}
+
+const MOCK_IG_INSIGHTS: InstagramInsightsSummary = {
+  igUserId: '17841480418262513',
+  username: 'acheicompreiofertas2026',
+  name: 'Achei Comprei Ofertas',
+  followersCount: 14820,
+  followsCount: 312,
+  mediaCount: 94,
+  periodLabel: 'Últimos 28 dias',
+  metrics: {
+    reach: 84350,
+    profileViews: 3910,
+    accountsEngaged: 6420,
+    totalInteractions: 9180,
+  },
+  recentMedia: [
+    {
+      id: 'demo_m_1',
+      caption: '🎧 Fone Bluetooth ANC por R$ 89 — Comenta "42" que envio o link no Direct!',
+      mediaType: 'VIDEO',
+      mediaProductType: 'REELS',
+      likeCount: 1420,
+      commentsCount: 318,
+      reach: 28400,
+      views: 34120,
+      saved: 412,
+      shares: 195,
+      timestamp: new Date(Date.now() - 86400 * 1000 * 1).toISOString(),
+    },
+    {
+      id: 'demo_m_2',
+      caption: '☕ Cafeteira Portátil USB em oferta relâmpago — código #39 na bio!',
+      mediaType: 'VIDEO',
+      mediaProductType: 'REELS',
+      likeCount: 980,
+      commentsCount: 204,
+      reach: 19200,
+      views: 22650,
+      saved: 290,
+      shares: 118,
+      timestamp: new Date(Date.now() - 86400 * 1000 * 3).toISOString(),
+    },
+  ],
+  warnings: [],
+  fetchedAt: new Date().toISOString(),
+};
 
 const MOCK_IG_ACCOUNTS: PublicInstagramAccount[] = [
   {
@@ -173,6 +261,9 @@ export default function InstagramWorkspacePanel({
   const [notice, setNotice] = useState('');
   const [demoMode, setDemoMode] = useState<boolean>(false);
   const [demoEvents, setDemoEvents] = useState<InstagramEventItem[]>(MOCK_IG_EVENTS);
+  const [workspaceTab, setWorkspaceTab] = useState<'feed' | 'insights'>('feed');
+  const [insights, setInsights] = useState<InstagramInsightsSummary | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   // Form: conexão manual via token da Meta
   const [showManualForm, setShowManualForm] = useState(false);
@@ -390,9 +481,50 @@ export default function InstagramWorkspacePanel({
     } catch {}
   };
 
+  const loadInsights = useCallback(
+    async (explicitIgId?: string) => {
+      const targetId =
+        explicitIgId ||
+        (selectedIgId !== 'all' ? selectedIgId : accounts[0]?.igUserId || '');
+      if (!targetId) return;
+      setLoadingInsights(true);
+      setError('');
+      try {
+        const resp =
+          mode === 'client'
+            ? await fetch(
+                `/api/hub/dashboard?scope=instagram-insights&igUserId=${encodeURIComponent(targetId)}`,
+                { headers: { 'x-project-jwt': projectJwt || '' }, cache: 'no-store' }
+              )
+            : await fetch(
+                `/api/instagram?scope=insights&igUserId=${encodeURIComponent(targetId)}`,
+                { cache: 'no-store' }
+              );
+        const data = await resp.json();
+        if (!resp.ok || !data.success) {
+          setError(data.error || 'Erro ao carregar Insights do Instagram.');
+          return;
+        }
+        setInsights(data.insights || null);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Falha ao consultar Insights.');
+      } finally {
+        setLoadingInsights(false);
+      }
+    },
+    [mode, projectJwt, selectedIgId, accounts]
+  );
+
+  useEffect(() => {
+    if (workspaceTab === 'insights' && accounts.length > 0 && !insights && !loadingInsights) {
+      loadInsights();
+    }
+  }, [workspaceTab, accounts.length, insights, loadingInsights, loadInsights]);
+
   const isShowingDemo = demoMode && accounts.length === 0 && events.length === 0;
   const displayedAccounts = isShowingDemo ? MOCK_IG_ACCOUNTS : accounts;
   const rawDisplayedEvents = isShowingDemo ? demoEvents : events;
+  const displayedInsights = isShowingDemo ? MOCK_IG_INSIGHTS : insights;
 
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -823,29 +955,194 @@ export default function InstagramWorkspacePanel({
           )}
         </div>
 
-        {/* Feed de Eventos: Comentários & DMs */}
+        {/* Coluna Direita: Feed de Eventos OU Métricas & Insights */}
         <div className="lg:col-span-8 rounded-3xl border border-slate-800 bg-slate-900/60 p-4 flex flex-col space-y-3">
+          {/* Seletor Feed vs Insights */}
           <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
-            <span className="text-xs font-bold text-slate-200">
-              Feed de Comentários &amp; DMs ({visibleEvents.length})
-            </span>
             <div className="flex items-center gap-1.5">
-              {(['all', 'comment', 'dm'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setFilterType(t)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium cursor-pointer ${
-                    filterType === t
-                      ? 'bg-fuchsia-600/25 text-fuchsia-300 border border-fuchsia-500/40'
-                      : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'
-                  }`}
-                >
-                  {t === 'all' ? 'Todos' : t === 'comment' ? 'Comentários' : 'DMs'}
-                </button>
-              ))}
+              <button
+                type="button"
+                onClick={() => setWorkspaceTab('feed')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
+                  workspaceTab === 'feed'
+                    ? 'bg-fuchsia-600 text-white shadow-sm'
+                    : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'
+                }`}
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>Feed Comentários &amp; DMs ({visibleEvents.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorkspaceTab('insights')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
+                  workspaceTab === 'insights'
+                    ? 'bg-gradient-to-r from-fuchsia-600 to-amber-500 text-white shadow-sm'
+                    : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Métricas &amp; Insights</span>
+              </button>
             </div>
+
+            {workspaceTab === 'feed' ? (
+              <div className="flex items-center gap-1.5">
+                {(['all', 'comment', 'dm'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setFilterType(t)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium cursor-pointer ${
+                      filterType === t
+                        ? 'bg-fuchsia-600/25 text-fuchsia-300 border border-fuchsia-500/40'
+                        : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    {t === 'all' ? 'Todos' : t === 'comment' ? 'Comentários' : 'DMs'}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => loadInsights()}
+                disabled={loadingInsights || isShowingDemo}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-xs text-slate-200 border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingInsights ? 'animate-spin' : ''}`} />
+                <span>{loadingInsights ? 'Consultando Meta...' : 'Atualizar Insights'}</span>
+              </button>
+            )}
           </div>
+
+          {workspaceTab === 'insights' ? (
+            !displayedInsights ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-12 text-center text-xs text-slate-500 space-y-2">
+                <BarChart3 className="w-8 h-8 text-slate-700" />
+                <p>
+                  {accounts.length === 0
+                    ? 'Conecte uma conta do Instagram (ou ative "Ver Demo") para visualizar métricas e Insights.'
+                    : 'Clique em "Atualizar Insights" para carregar seguidores, alcance e desempenho dos Reels.'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* KPIs da Conta */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Seguidores</span>
+                      <Users className="w-3.5 h-3.5 text-fuchsia-400" />
+                    </div>
+                    <div className="text-xl font-bold font-mono text-white mt-1">
+                      {displayedInsights.followersCount.toLocaleString('pt-BR')}
+                    </div>
+                    <div className="text-[10px] text-slate-500">
+                      {displayedInsights.mediaCount} publicações
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Alcance (28d)</span>
+                      <Eye className="w-3.5 h-3.5 text-blue-400" />
+                    </div>
+                    <div className="text-xl font-bold font-mono text-blue-300 mt-1">
+                      {displayedInsights.metrics.reach.toLocaleString('pt-BR')}
+                    </div>
+                    <div className="text-[10px] text-slate-500">Contas únicas</div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Interações</span>
+                      <Heart className="w-3.5 h-3.5 text-pink-400" />
+                    </div>
+                    <div className="text-xl font-bold font-mono text-pink-300 mt-1">
+                      {displayedInsights.metrics.totalInteractions.toLocaleString('pt-BR')}
+                    </div>
+                    <div className="text-[10px] text-slate-500">
+                      {displayedInsights.metrics.accountsEngaged.toLocaleString('pt-BR')} engajadas
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Visitas Perfil</span>
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                    </div>
+                    <div className="text-xl font-bold font-mono text-emerald-300 mt-1">
+                      {displayedInsights.metrics.profileViews.toLocaleString('pt-BR')}
+                    </div>
+                    <div className="text-[10px] text-slate-500">Últimos 28 dias</div>
+                  </div>
+                </div>
+
+                {displayedInsights.warnings?.length > 0 && (
+                  <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/30 text-[11px] text-amber-200">
+                    Avisos da Graph API: {displayedInsights.warnings.join(' | ')}
+                  </div>
+                )}
+
+                {/* Desempenho das Últimas Mídias / Reels */}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-200">
+                    Desempenho dos Últimos Posts &amp; Reels ({displayedInsights.recentMedia.length})
+                  </div>
+                  {displayedInsights.recentMedia.length === 0 ? (
+                    <div className="p-6 rounded-2xl border border-dashed border-slate-800 text-center text-xs text-slate-500">
+                      Nenhuma mídia encontrada nesta conta.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                      {displayedInsights.recentMedia.map((m) => (
+                        <div
+                          key={m.id}
+                          className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                        >
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-fuchsia-500/15 text-fuchsia-300">
+                                {m.mediaProductType || m.mediaType || 'POST'}
+                              </span>
+                              {m.timestamp && (
+                                <span className="text-[10px] text-slate-500">
+                                  {new Date(m.timestamp).toLocaleDateString('pt-BR')}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-slate-200 truncate max-w-md">
+                              {m.caption || `Mídia ${m.id}`}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-[11px] font-mono text-slate-300 shrink-0">
+                            <span title="Curtidas">❤️ {m.likeCount}</span>
+                            <span title="Comentários">💬 {m.commentsCount}</span>
+                            {m.reach !== undefined && <span title="Alcance">👁️ {m.reach}</span>}
+                            {m.views !== undefined && <span title="Views">▶️ {m.views}</span>}
+                            {m.permalink && (
+                              <a
+                                href={m.permalink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-300"
+                                title="Abrir no Instagram"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          ) : (
+            <>
 
           {activeReplyTarget && (
             <form
@@ -984,6 +1281,8 @@ export default function InstagramWorkspacePanel({
                 </div>
               ))}
             </div>
+          )}
+            </>
           )}
         </div>
       </div>
