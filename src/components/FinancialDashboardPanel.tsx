@@ -503,6 +503,14 @@ export default function FinancialDashboardPanel({
       return;
     }
     if (!accountJwt) return;
+    if ((selectedBillingType === 'PIX' || selectedBillingType === 'BOLETO') && !cpfCnpj.trim()) {
+      setError(
+        selectedBillingType === 'PIX'
+          ? 'Informe o CPF ou CNPJ para gerar a cobrança via Pix.'
+          : 'Informe o CPF ou CNPJ para gerar o boleto bancário.'
+      );
+      return;
+    }
     setSubscribing(true);
     setError('');
     setNotice('');
@@ -518,7 +526,7 @@ export default function FinancialDashboardPanel({
           planId: selectedPlan,
           billingCycle: selectedCycle,
           billingType: selectedBillingType,
-          cpfCnpj: cpfCnpj.trim(),
+          cpfCnpj: selectedBillingType === 'CREDIT_CARD' ? undefined : cpfCnpj.trim() || undefined,
           phone: phone.trim(),
         }),
       });
@@ -1539,7 +1547,11 @@ export default function FinancialDashboardPanel({
           </div>
 
           {/* Pagamento Asaas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-800">
+          <div
+            className={`grid grid-cols-1 ${
+              selectedBillingType === 'CREDIT_CARD' ? 'md:grid-cols-2' : 'md:grid-cols-3'
+            } gap-3 pt-2 border-t border-slate-800`}
+          >
             <div>
               <label className="block text-[11px] text-slate-400 mb-1">
                 Forma de Pagamento (Asaas)
@@ -1551,26 +1563,31 @@ export default function FinancialDashboardPanel({
               >
                 <option value="PIX">Pix (Aprovação Imediata)</option>
                 <option value="BOLETO">Boleto Bancário</option>
-                <option value="CREDIT_CARD">Cartão de Crédito Recorrente</option>
+                <option value="CREDIT_CARD">Cartão de Crédito (Nacional / Internacional)</option>
               </select>
             </div>
+            {selectedBillingType !== 'CREDIT_CARD' && (
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">
+                  CPF ou CNPJ ({selectedBillingType === 'PIX' ? 'obrigatório para Pix' : 'obrigatório para Boleto'})
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={cpfCnpj}
+                  onChange={(e) => setCpfCnpj(e.target.value)}
+                  placeholder="Somente números"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100"
+                />
+              </div>
+            )}
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">CPF ou CNPJ</label>
-              <input
-                type="text"
-                value={cpfCnpj}
-                onChange={(e) => setCpfCnpj(e.target.value)}
-                placeholder="Somente números (obrigatório no Asaas)"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] text-slate-400 mb-1">WhatsApp / Telefone</label>
+              <label className="block text-[11px] text-slate-400 mb-1">WhatsApp / Telefone (opcional)</label>
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="(11) 99999-9999"
+                placeholder="+55 (11) 99999-9999"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100"
               />
             </div>

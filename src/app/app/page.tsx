@@ -145,7 +145,6 @@ export default function AppPage() {
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regCpfCnpj, setRegCpfCnpj] = useState('');
   const [regPlan, setRegPlan] = useState<PlanId>('omnichannel');
   const [regCycle, setRegCycle] = useState<BillingCycle>('MONTHLY');
   const [regCourtesyCode, setRegCourtesyCode] = useState('');
@@ -993,7 +992,6 @@ export default function AppPage() {
           name: regName.trim(),
           email: regEmail.trim(),
           password: regPassword.trim(),
-          cpfCnpj: regCpfCnpj.trim() || undefined,
           planId: regPlan,
           billingCycle: regCycle,
           courtesyCode: regCourtesyCode.trim() || undefined,
@@ -1458,23 +1456,14 @@ export default function AppPage() {
                     placeholder="E-mail profissional"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
                   />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="password"
-                      required
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="Senha (mín. 4 chars)"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
-                    />
-                    <input
-                      type="text"
-                      value={regCpfCnpj}
-                      onChange={(e) => setRegCpfCnpj(e.target.value)}
-                      placeholder="CPF/CNPJ (Asaas)"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Senha (mín. 4 caracteres)"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                  />
                 </div>
 
                 {/* Escolha de Plano e Ciclo */}
@@ -1531,13 +1520,16 @@ export default function AppPage() {
                   </p>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/25">
+                  <label className="block text-[11px] font-semibold text-emerald-300">
+                    Código de Cortesia / Gratuidade (opcional)
+                  </label>
                   <input
                     type="text"
                     value={regCourtesyCode}
                     onChange={(e) => setRegCourtesyCode(e.target.value.toUpperCase())}
-                    placeholder="Código de Cortesia / Gratuidade (opcional)"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-emerald-300 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                    placeholder="Ex: META-XXXX-XXXX"
+                    className="w-full bg-slate-950 border border-emerald-500/30 rounded-xl px-3.5 py-2 text-xs font-mono text-emerald-300 placeholder:text-slate-600 focus:outline-none focus:border-emerald-400"
                   />
                   {regCourtesyCode.trim() && (
                     <p className="text-[10px] text-emerald-400">
