@@ -177,7 +177,7 @@ export default function FinancialDashboardPanel({
   const [invoices, setInvoices] = useState<BillingInvoiceItem[]>([]);
   const [courtesyCodes, setCourtesyCodes] = useState<CourtesyCodeItem[]>([]);
   const [genCodesCount, setGenCodesCount] = useState<number>(1);
-  const [genCodesLabel, setGenCodesLabel] = useState<string>('Cortesia 2 anos (Uso único)');
+  const [genCodesLabel, setGenCodesLabel] = useState<string>('Código Promocional 2 anos (Uso único)');
   const [generatingCodes, setGeneratingCodes] = useState(false);
   const [redeemCodeInput, setRedeemCodeInput] = useState('');
   const [redeemingCode, setRedeemingCode] = useState(false);
@@ -435,7 +435,7 @@ export default function FinancialDashboardPanel({
           action: 'admin-generate-codes',
           count: genCodesCount,
           validYears: 2,
-          label: genCodesLabel.trim() || 'Cortesia 2 anos (Uso único)',
+          label: genCodesLabel.trim() || 'Código Promocional 2 anos (Uso único)',
         }),
       });
       const data = await resp.json();
@@ -484,7 +484,7 @@ export default function FinancialDashboardPanel({
         setError(data.error || 'Código inválido ou já utilizado.');
         return;
       }
-      setNotice('Código de cortesia aplicado! Sua conta agora é Isenta (R$ 0,00 / Ilimitada).');
+      setNotice('Código promocional aplicado! Sua conta agora é Isenta (R$ 0,00 / Ilimitada).');
       setRedeemCodeInput('');
       await loadData();
     } catch (err: unknown) {
@@ -1002,12 +1002,12 @@ export default function FinancialDashboardPanel({
           )}
         </div>
 
-        {/* Códigos de Cortesia (Uso Único • Validade 2 Anos) */}
+        {/* Códigos Promocionais (Uso Único • Validade 2 Anos) */}
         <div className="rounded-3xl border border-slate-800 bg-slate-900/60 overflow-hidden">
           <div className="px-5 py-3.5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-xs font-bold text-slate-200 flex items-center gap-2">
               <Ticket className="w-4 h-4 text-amber-400" />
-              Códigos de Cortesia / Gratuidade ({courtesyCodes.length})
+              Códigos Promocionais ({courtesyCodes.length})
             </span>
             <div className="flex items-center gap-2 flex-wrap">
               <input
@@ -1040,7 +1040,7 @@ export default function FinancialDashboardPanel({
 
           {courtesyCodes.length === 0 ? (
             <div className="p-6 text-center text-xs text-slate-500">
-              Nenhum código de cortesia gerado ainda.
+              Nenhum código promocional gerado ainda.
             </div>
           ) : (
             <div className="overflow-x-auto max-h-[340px] overflow-y-auto">
@@ -1423,7 +1423,7 @@ export default function FinancialDashboardPanel({
             <div className="flex items-center gap-2.5 text-xs">
               <Ticket className="w-4 h-4 text-amber-400 shrink-0" />
               <span className="text-slate-200">
-                <strong>Possui um Código de Cortesia?</strong> Resgate para liberar acesso isento:
+                <strong>Possui um Código Promocional?</strong> Resgate para liberar acesso isento:
               </span>
             </div>
             <div className="flex gap-2">

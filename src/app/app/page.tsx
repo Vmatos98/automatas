@@ -1016,7 +1016,7 @@ export default function AppPage() {
       localStorage.removeItem('automatas_app_auth');
       setFeedbackMessage({
         text: data.courtesyApplied
-          ? `Conta "${data.account.name}" criada com Código de Cortesia aplicado (Omnichannel Isento)!`
+          ? `Conta "${data.account.name}" criada com Código Promocional aplicado (Omnichannel Isento)!`
           : `Conta "${data.account.name}" criada! Finalize sua assinatura Asaas no Financeiro ou comece a criar projetos.`,
         type: 'success',
       });
@@ -1522,7 +1522,7 @@ export default function AppPage() {
 
                 <div className="space-y-1 p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/25">
                   <label className="block text-[11px] font-semibold text-emerald-300">
-                    Código de Cortesia / Gratuidade (opcional)
+                    Código Promocional (opcional)
                   </label>
                   <input
                     type="text"
