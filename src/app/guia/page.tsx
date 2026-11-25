@@ -261,12 +261,20 @@ window.addEventListener('message', (event) => {
                 Passo 3 — Enviar Mídia: Imagem, Vídeo, Áudio, Documento ou Sticker (POST /api/hub/messages/media)
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Você pode enviar para <code className="text-blue-300">POST /api/hub/messages/media</code> (ou direto para <code className="text-blue-300">/messages/send</code> informando <code className="text-blue-300">type</code>). Tipos aceitos: <code className="text-emerald-300">image</code>, <code className="text-emerald-300">video</code>, <code className="text-emerald-300">audio</code>, <code className="text-emerald-300">document</code>, <code className="text-emerald-300">sticker</code>. Informe <code className="text-emerald-300">mediaUrl</code> (HTTPS público) ou <code className="text-emerald-300">mediaId</code>.
+                Você pode enviar para <code className="text-blue-300">POST /api/hub/messages/media</code> (ou direto para <code className="text-blue-300">/messages/send</code> informando <code className="text-blue-300">type</code>). Tipos aceitos: <code className="text-emerald-300">image</code>, <code className="text-emerald-300">video</code>, <code className="text-emerald-300">audio</code>, <code className="text-emerald-300">document</code>, <code className="text-emerald-300">sticker</code>.
               </p>
+              <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 text-xs text-amber-200 leading-relaxed">
+                <strong>Regra de Tamanho e Upload Direto:</strong> Você pode enviar o arquivo em si usando{' '}
+                <code className="text-amber-300">mediaBase64</code> + <code className="text-amber-300">mimeType</code>{' '}
+                (ou subir antes em <code className="text-amber-300">POST /api/hub/media/upload</code> para reutilizar o{' '}
+                <code className="text-amber-300">mediaId</code>) até o limite máximo de <strong>5 MB</strong> por arquivo.{' '}
+                <strong>Acima de 5 MB</strong>, hospede o arquivo em seu próprio servidor/bucket (S3, R2, etc.) e envie apenas o link HTTPS em{' '}
+                <code className="text-emerald-300">mediaUrl</code>.
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <CodeBlock
                   id="wa_media_img"
-                  title="JSON — Enviar Imagem ou Vídeo"
+                  title="JSON — Enviar via Link (mediaUrl, sem limite local)"
                   copiedId={copiedId}
                   onCopy={copyText}
                   code={`{
@@ -277,19 +285,35 @@ window.addEventListener('message', (event) => {
 }`}
                 />
                 <CodeBlock
-                  id="wa_media_doc"
-                  title="JSON — Enviar PDF / Documento ou Áudio"
+                  id="wa_media_base64"
+                  title="JSON — Upload Direto em Base64 (máx. 5 MB)"
                   copiedId={copiedId}
                   onCopy={copyText}
                   code={`{
   "to": "5511999999999",
   "type": "document",
-  "mediaUrl": "https://seu-dominio.com/boleto.pdf",
+  "mediaBase64": "JVBERi0xLjQKJ...",
+  "mimeType": "application/pdf",
   "filename": "fatura-novembro.pdf",
   "caption": "Segue sua fatura em PDF."
 }`}
                 />
               </div>
+              <CodeBlock
+                id="wa_media_upload_only"
+                title="Opcional — Subir mídia para obter mediaId reutilizável (POST /api/hub/media/upload, máx. 5 MB)"
+                copiedId={copiedId}
+                onCopy={copyText}
+                code={`curl -X POST https://api.automatas.tech/api/hub/media/upload \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: aut_live_SUA_API_KEY" \\
+  -d '{
+    "mediaBase64": "JVBERi0xLjQKJ...",
+    "mimeType": "application/pdf",
+    "filename": "catalogo.pdf"
+  }'
+// Retorno: { "success": true, "mediaId": "1234567890", "sizeBytes": 245120, "maxBytes": 5242880 }`}
+              />
             </section>
 
             {/* Step 4: Template, Read & Download Media */}
