@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   AlertTriangle,
+  BookOpen,
   Check,
   Code2,
   Copy,
@@ -81,7 +82,6 @@ export default function HubProjectsPanel({
   const [editingWebhooks, setEditingWebhooks] = useState<
     Record<string, { whatsapp: string; instagram: string }>
   >({});
-  const [guideTab, setGuideTab] = useState<'setup' | 'send' | 'webhook'>('setup');
 
   const canManageProjects = mode === 'admin' || mode === 'agency';
   const allowedChannels =
@@ -499,15 +499,28 @@ export default function HubProjectsPanel({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={loadProjects}
-          disabled={loading}
-          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700/60 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Atualizar</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <a
+            href="/guia"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-xs font-semibold text-blue-200 border border-blue-500/40 flex items-center gap-1.5 cursor-pointer"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Guia de Implementação</span>
+            <ExternalLink className="w-3 h-3 opacity-80" />
+          </a>
+
+          <button
+            type="button"
+            onClick={loadProjects}
+            disabled={loading}
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700/60 flex items-center gap-1.5 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Atualizar</span>
+          </button>
+        </div>
       </div>
 
       {/* Medidor de Franquia de Projetos (Modo Agência / Cliente Pagante) */}
@@ -1022,200 +1035,6 @@ export default function HubProjectsPanel({
               </div>
             );
           })
-        )}
-      </div>
-
-      {/* Guia de Implementação Bridge API (Configuração, Payloads Texto/Mídia e Webhook) */}
-      <div className="p-5 rounded-3xl border border-slate-800 bg-slate-900/65 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Code2 className="w-4 h-4 text-blue-400" />
-              Guia de Implementação da Ponte (Token, API Key, Mídias &amp; Webhook)
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Padrão oficial de comunicação entre o sistema do cliente, a Automatas e a Meta.
-            </p>
-          </div>
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-950 border border-slate-800">
-            {[
-              { id: 'setup' as const, label: '1. Configurar & Token' },
-              { id: 'send' as const, label: '2. Enviar (Texto & Mídia)' },
-              { id: 'webhook' as const, label: '3. Receber Webhook' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setGuideTab(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                  guideTab === tab.id
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {guideTab === 'setup' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-              <div className="font-bold text-blue-300">1. Token JWT (Embedded Signup)</div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                O <strong>Login JWT</strong> valida o projeto e abre a tela de onboarding da Meta para o cliente conectar seu número WhatsApp ou conta Instagram:
-              </p>
-              <code className="block p-2 rounded-lg bg-slate-900 text-[10px] text-blue-200 break-all font-mono">
-                https://automatas.tech/conectar?token=SEU_LOGIN_JWT&amp;channel=whatsapp
-              </code>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-              <div className="font-bold text-emerald-300">2. API Key (Enviar Mensagens)</div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Guarde sua <strong>API Key</strong> (<code className="text-emerald-300">aut_live_...</code>) no backend do seu sistema e envie no header de toda requisição:
-              </p>
-              <code className="block p-2 rounded-lg bg-slate-900 text-[10px] text-emerald-200 break-all font-mono">
-                x-api-key: aut_live_SUA_CHAVE
-              </code>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-              <div className="font-bold text-amber-300">3. Webhook (Receber Eventos)</div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Cadastre sua URL de destino no projeto acima e valide o header{' '}
-                <code className="text-amber-300">X-Automatas-Signature</code> usando o{' '}
-                <strong>Webhook Secret</strong> do projeto.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {guideTab === 'send' && (
-          <div className="space-y-3 text-xs">
-            <div className="text-[11px] text-slate-300">
-              Endpoint Base: <code className="text-blue-300 font-mono">https://api.automatas.tech/api/hub</code>{' '}
-              • Header obrigatório: <code className="text-emerald-300 font-mono">x-api-key: aut_live_...</code>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-emerald-300 text-[11px]">
-                    Enviar Texto — POST /api/hub/messages/send
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      copyText(
-                        `curl -X POST https://api.automatas.tech/api/hub/messages/send \\\n  -H "Content-Type: application/json" \\\n  -H "x-api-key: aut_live_SUA_API_KEY" \\\n  -d '{"to":"5511999999999","text":"Olá! Mensagem via Automatas Hub."}'`,
-                        'guide_send_text'
-                      )
-                    }
-                    className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-200 flex items-center gap-1 cursor-pointer"
-                  >
-                    {copiedId === 'guide_send_text' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedId === 'guide_send_text' ? 'Copiado' : 'Copiar cURL'}</span>
-                  </button>
-                </div>
-                <pre className="p-2.5 rounded-xl bg-slate-900 text-[10px] text-slate-200 overflow-x-auto font-mono leading-relaxed">
-{`{
-  "to": "5511999999999",
-  "text": "Olá! Tudo bem?",
-  "replyToMessageId": "wamid.opcional",
-  "phoneNumberId": "opcional_se_tiver_1_numero"
-}`}
-                </pre>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-blue-300 text-[11px]">
-                    Enviar Mídia — POST /api/hub/messages/media
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      copyText(
-                        `curl -X POST https://api.automatas.tech/api/hub/messages/media \\\n  -H "Content-Type: application/json" \\\n  -H "x-api-key: aut_live_SUA_API_KEY" \\\n  -d '{"to":"5511999999999","type":"image","mediaUrl":"https://exemplo.com/foto.jpg","caption":"Legenda opcional"}'`,
-                        'guide_send_media'
-                      )
-                    }
-                    className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-200 flex items-center gap-1 cursor-pointer"
-                  >
-                    {copiedId === 'guide_send_media' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedId === 'guide_send_media' ? 'Copiado' : 'Copiar cURL'}</span>
-                  </button>
-                </div>
-                <pre className="p-2.5 rounded-xl bg-slate-900 text-[10px] text-slate-200 overflow-x-auto font-mono leading-relaxed">
-{`{
-  "to": "5511999999999",
-  "type": "image | video | audio | document | sticker",
-  "mediaUrl": "https://seu-dominio.com/arquivo.pdf",
-  "caption": "Legenda (image/video/document)",
-  "filename": "contrato.pdf"
-}`}
-                </pre>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400">
-              <strong className="text-slate-200">Outros endpoints suportados:</strong>{' '}
-              <code className="text-purple-300">POST /api/hub/messages/template</code> (templates aprovados),{' '}
-              <code className="text-emerald-300">POST /api/hub/messages/read</code> (marcar lida),{' '}
-              <code className="text-blue-300">GET /api/hub/media/:mediaId</code> (baixar mídia recebida) e{' '}
-              <code className="text-fuchsia-300">POST /api/hub/instagram/dm</code> (Direct Instagram).
-            </div>
-          </div>
-        )}
-
-        {guideTab === 'webhook' && (
-          <div className="space-y-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5 text-[11px] text-slate-300">
-              <div className="font-bold text-amber-300">Headers enviados pela Automatas no POST para o seu Webhook:</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 font-mono text-[10px] text-slate-300 pt-1">
-                <div>• X-Automatas-Hub: 1</div>
-                <div>• X-Automatas-Channel: whatsapp | instagram</div>
-                <div>• X-Automatas-Project-Id: id_do_projeto</div>
-                <div>• X-Automatas-Signature: sha256=HMAC_HEX</div>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-emerald-300 text-[11px]">
-                  Exemplo de Receptor Webhook (Node.js / Express + Validação HMAC)
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    copyText(
-                      `import crypto from 'crypto';\n\napp.post('/api/webhook/whatsapp', express.raw({ type: 'application/json' }), (req, res) => {\n  const sig = req.headers['x-automatas-signature'];\n  const expected = 'sha256=' + crypto\n    .createHmac('sha256', process.env.AUTOMATAS_WEBHOOK_SECRET)\n    .update(req.body)\n    .digest('hex');\n\n  if (sig !== expected) return res.status(401).send('Assinatura inválida');\n\n  const payload = JSON.parse(req.body.toString('utf8'));\n  const value = payload?.entry?.[0]?.changes?.[0]?.value;\n  const msg = value?.messages?.[0];\n  if (msg) {\n    console.log('Recebido de:', msg.from, 'Tipo:', msg.type, 'Texto:', msg.text?.body);\n  }\n  res.sendStatus(200);\n});`,
-                      'guide_webhook_node'
-                    )
-                  }
-                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-200 flex items-center gap-1 cursor-pointer"
-                >
-                  {copiedId === 'guide_webhook_node' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedId === 'guide_webhook_node' ? 'Copiado' : 'Copiar Código'}</span>
-                </button>
-              </div>
-              <pre className="p-2.5 rounded-xl bg-slate-900 text-[10px] text-slate-200 overflow-x-auto font-mono leading-relaxed">
-{`// Payload encaminhado = formato oficial Meta Cloud API:
-{
-  "object": "whatsapp_business_account",
-  "entry": [{
-    "changes": [{
-      "value": {
-        "metadata": { "phone_number_id": "123456789" },
-        "contacts": [{ "wa_id": "5511999999999", "profile": { "name": "Cliente" } }],
-        "messages": [{ "from": "5511999999999", "id": "wamid...", "type": "text", "text": { "body": "Oi!" } }]
-      }
-    }]
-  }]
-}`}
-              </pre>
-            </div>
-          </div>
         )}
       </div>
     </div>
