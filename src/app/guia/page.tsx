@@ -15,8 +15,202 @@ import {
   MessageSquare,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Webhook,
 } from 'lucide-react';
+
+const WHATSAPP_LLM_PROMPT_MD = `# Integração Automatas Bridge API — WhatsApp Cloud API
+
+Você é um agente de desenvolvimento integrando o nosso sistema com a **Automatas Bridge API** (\`automatas.tech\`), que atua como ponte oficial entre a nossa aplicação e a Meta WhatsApp Cloud API.
+
+## 1. Resumo da Arquitetura da Ponte
+1. **Login JWT (Conexão / Embedded Signup):** Valida o projeto e abre a mini-tela oficial \`https://automatas.tech/conectar?token=SEU_LOGIN_JWT&channel=whatsapp\` para o cliente final conectar o número do WhatsApp. Quando conclui, o popup dispara \`window.postMessage\` com \`type: "AUTOMATAS_HUB_CONNECTED"\`.
+2. **API Key (\`aut_live_...\`):** Usada no backend da nossa aplicação no header \`x-api-key: aut_live_SUA_API_KEY\` para enviar mensagens, mídias e templates.
+3. **Webhook + HMAC-SHA256:** Toda mensagem recebida ou status (\`sent\`, \`delivered\`, \`read\`, \`failed\`) é enviado via \`POST\` para a \`webhookUrl\` configurada no projeto com o header \`X-Automatas-Signature: sha256=HMAC_HEX\` (assinado com o \`AUTOMATAS_WEBHOOK_SECRET\` do projeto) e \`X-Automatas-Channel: whatsapp\`.
+
+## 2. Base URL e Autenticação
+- **Base URL:** \`https://api.automatas.tech/api/hub\`
+- **Headers obrigatórios:**
+  - \`Content-Type: application/json\`
+  - \`x-api-key: aut_live_SUA_API_KEY\`
+
+## 3. Endpoints WhatsApp
+
+### 3.1 Conectar Número (Frontend Popup)
+\`\`\`js
+const popupUrl = \`https://automatas.tech/conectar?token=\${encodeURIComponent(LOGIN_JWT)}&channel=whatsapp\`;
+window.open(popupUrl, 'automatas_connect', 'width=540,height=740,scrollbars=yes');
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://automatas.tech') return;
+  if (event.data?.type === 'AUTOMATAS_HUB_CONNECTED') {
+    console.log('Conectado:', event.data.payload);
+  }
+});
+\`\`\`
+
+### 3.2 Enviar Mensagem de Texto — \`POST /api/hub/messages/send\`
+\`\`\`json
+{
+  "to": "5511999999999",
+  "text": "Olá! Mensagem enviada via Automatas.",
+  "replyToMessageId": "wamid.opcional",
+  "phoneNumberId": "opcional_se_tiver_1_numero"
+}
+\`\`\`
+
+### 3.3 Enviar Mídia — \`POST /api/hub/messages/media\` (ou \`/messages/send\`)
+- **Tipos (\`type\`):** \`image\` | \`video\` | \`audio\` | \`document\` | \`sticker\`
+- **Regra de tamanho:**
+  - **Até 5 MB:** pode enviar direto via \`mediaBase64\` + \`mimeType\` (ou fazer upload antes em \`POST /api/hub/media/upload\` para obter \`mediaId\`).
+  - **Acima de 5 MB:** retorna HTTP \`413\`; hospede o arquivo em servidor/bucket HTTPS próprio e envie apenas o link em \`mediaUrl\`.
+\`\`\`json
+// Via Link (sem limite local):
+{
+  "to": "5511999999999",
+  "type": "image",
+  "mediaUrl": "https://seu-dominio.com/imagem.jpg",
+  "caption": "Legenda opcional"
+}
+
+// Via Upload Direto Base64 (máx. 5 MB):
+{
+  "to": "5511999999999",
+  "type": "document",
+  "mediaBase64": "JVBERi0xLjQKJ...",
+  "mimeType": "application/pdf",
+  "filename": "contrato.pdf",
+  "caption": "Segue o PDF."
+}
+\`\`\`
+
+### 3.4 Upload Reutilizável (até 5 MB) — \`POST /api/hub/media/upload\`
+\`\`\`json
+{
+  "mediaBase64": "JVBERi0xLjQKJ...",
+  "mimeType": "application/pdf",
+  "filename": "catalogo.pdf"
+}
+\`\`\`
+Retorno: \`{ "success": true, "mediaId": "1234567890", "sizeBytes": 245120, "maxBytes": 5242880 }\`.
+
+### 3.5 Template, Leitura e Download de Mídia
+- **Enviar Template:** \`POST /api/hub/messages/template\` -> \`{ "to": "5511999999999", "templateName": "hello_world", "languageCode": "pt_BR", "components": [] }\`
+- **Marcar como lida:** \`POST /api/hub/messages/read\` -> \`{ "messageId": "wamid..." }\`
+- **Baixar mídia recebida:** \`GET /api/hub/media/:mediaId\` (com header \`x-api-key\`)
+
+## 4. Receber Webhook no Backend (Node.js + Express)
+\`\`\`js
+import crypto from 'crypto';
+
+app.post('/api/webhook/whatsapp', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = req.headers['x-automatas-signature'];
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', process.env.AUTOMATAS_WEBHOOK_SECRET)
+    .update(req.body)
+    .digest('hex');
+
+  if (sig !== expected) return res.status(401).send('Assinatura inválida');
+
+  const payload = JSON.parse(req.body.toString('utf8'));
+  const value = payload?.entry?.[0]?.changes?.[0]?.value;
+  for (const msg of value?.messages || []) {
+    console.log({ from: msg.from, id: msg.id, type: msg.type, text: msg.text?.body });
+  }
+  for (const st of value?.statuses || []) {
+    console.log('Status:', st.id, st.status);
+  }
+  return res.sendStatus(200);
+});
+\`\`\`
+
+Implemente os serviços de envio, upload/link de mídia e receptor de webhook na nossa aplicação seguindo exatamente este contrato.`;
+
+const INSTAGRAM_LLM_PROMPT_MD = `# Integração Automatas Bridge API — Instagram API
+
+Você é um agente de desenvolvimento integrando o nosso sistema com a **Automatas Bridge API** (\`automatas.tech\`), que atua como ponte oficial entre a nossa aplicação e a Meta Instagram API.
+
+## 1. Resumo da Arquitetura da Ponte
+1. **Login JWT (Conexão / Login Unificado):** Valida o projeto e abre a mini-tela oficial \`https://automatas.tech/conectar?token=SEU_LOGIN_JWT&channel=instagram\` para o cliente final autorizar a conta Instagram Business. Quando conclui, o popup dispara \`window.postMessage\` com \`type: "AUTOMATAS_HUB_CONNECTED"\`.
+2. **API Key (\`aut_live_...\`):** Usada no backend da nossa aplicação no header \`x-api-key: aut_live_SUA_API_KEY\` para enviar DMs, responder comentários, publicar Reels e consultar Insights.
+3. **Webhook + HMAC-SHA256:** Toda DM, comentário ou menção recebida é enviada via \`POST\` para a \`instagramWebhookUrl\` configurada no projeto com o header \`X-Automatas-Signature: sha256=HMAC_HEX\` (assinado com o \`AUTOMATAS_WEBHOOK_SECRET\` do projeto) e \`X-Automatas-Channel: instagram\`.
+
+## 2. Base URL e Autenticação
+- **Base URL:** \`https://api.automatas.tech/api/hub\`
+- **Headers obrigatórios:**
+  - \`Content-Type: application/json\`
+  - \`x-api-key: aut_live_SUA_API_KEY\`
+
+## 3. Endpoints Instagram
+
+### 3.1 Conectar Conta Instagram (Frontend Popup)
+\`\`\`js
+const popupUrl = \`https://automatas.tech/conectar?token=\${encodeURIComponent(LOGIN_JWT)}&channel=instagram\`;
+window.open(popupUrl, 'automatas_connect_ig', 'width=540,height=740,scrollbars=yes');
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://automatas.tech') return;
+  if (event.data?.type === 'AUTOMATAS_HUB_CONNECTED') {
+    console.log('Instagram conectado:', event.data.payload);
+  }
+});
+\`\`\`
+
+### 3.2 Enviar Direct (DM) ou Private Reply — \`POST /api/hub/instagram/dm\`
+\`\`\`json
+{
+  "recipientId": "IGSID_DO_USUARIO",
+  "text": "Olá! Obrigado pelo contato no Instagram.",
+  "igUserId": "opcional_se_tiver_1_conta"
+}
+\`\`\`
+*(Para responder um comentário no privado via Private Reply, envie \`"commentId": "ID_DO_COMENTARIO"\` no lugar de \`recipientId\`.)*
+
+### 3.3 Responder Comentário — \`POST /api/hub/instagram/comments/reply\`
+\`\`\`json
+{
+  "commentId": "ID_DO_COMENTARIO",
+  "message": "Oi! Te enviamos uma mensagem no Direct."
+}
+\`\`\`
+
+### 3.4 Publicar Reel — \`POST /api/hub/instagram/reels/publish\`
+\`\`\`json
+{
+  "videoUrl": "https://seu-dominio.com/reel-vertical.mp4",
+  "caption": "Novo vídeo publicado via Automatas Hub!",
+  "igUserId": "opcional_se_tiver_1_conta"
+}
+\`\`\`
+
+### 3.5 Consultar Insights — \`GET /api/hub/instagram/insights\`
+Header obrigatório: \`x-api-key: aut_live_SUA_API_KEY\` (opcional: \`?igUserId=...\`).
+
+## 4. Receber Webhook no Backend (Node.js + Express)
+\`\`\`js
+import crypto from 'crypto';
+
+app.post('/api/webhook/instagram', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = req.headers['x-automatas-signature'];
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', process.env.AUTOMATAS_WEBHOOK_SECRET)
+    .update(req.body)
+    .digest('hex');
+
+  if (sig !== expected) return res.status(401).send('Assinatura inválida');
+
+  const payload = JSON.parse(req.body.toString('utf8'));
+  for (const entry of payload?.entry || []) {
+    for (const msgEvent of entry.messaging || []) {
+      console.log('DM de:', msgEvent.sender?.id, 'Texto:', msgEvent.message?.text);
+    }
+    for (const change of entry.changes || []) {
+      console.log('Evento IG:', change.field, change.value);
+    }
+  }
+  return res.sendStatus(200);
+});
+\`\`\`
+
+Implemente os serviços do Instagram e o receptor de webhook na nossa aplicação seguindo exatamente este contrato.`;
 
 function CodeBlock({
   id,
@@ -154,6 +348,53 @@ export default function GuiaImplementacaoPage() {
                 x-api-key: aut_live_SUA_API_KEY
               </code>
             </div>
+          </div>
+        </section>
+
+        {/* Resumo para LLM / Agente de IA (.md) */}
+        <section className="p-4 rounded-2xl bg-blue-950/20 border border-blue-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" />
+              Resumo para LLM / Agente de IA (.md)
+            </div>
+            <p className="text-xs text-slate-300">
+              Copie um prompt em Markdown com o resumo da arquitetura (Token, API Key, Webhook) e todos os endpoints prontos para colar no seu agente de IA.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => copyText(WHATSAPP_LLM_PROMPT_MD, 'llm_whatsapp_md')}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-xs font-semibold text-emerald-200 flex items-center gap-1.5 cursor-pointer transition-colors"
+            >
+              {copiedId === 'llm_whatsapp_md' ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+              <span>
+                {copiedId === 'llm_whatsapp_md'
+                  ? 'Markdown WhatsApp Copiado!'
+                  : 'Copiar Resumo LLM — WhatsApp (.md)'}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => copyText(INSTAGRAM_LLM_PROMPT_MD, 'llm_instagram_md')}
+              className="px-3.5 py-2 rounded-xl bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/40 text-xs font-semibold text-fuchsia-200 flex items-center gap-1.5 cursor-pointer transition-colors"
+            >
+              {copiedId === 'llm_instagram_md' ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+              <span>
+                {copiedId === 'llm_instagram_md'
+                  ? 'Markdown Instagram Copiado!'
+                  : 'Copiar Resumo LLM — Instagram (.md)'}
+              </span>
+            </button>
           </div>
         </section>
 
